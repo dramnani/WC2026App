@@ -1,0 +1,228 @@
+# input data
+
+library(openxlsx2)
+
+matches <- data.frame(
+  match_id = c(
+    # Group A
+    "A1","A2","A3","A4","A5","A6",
+    # Group B
+    "B1","B2","B3","B4","B5","B6",
+    # Group C
+    "C1","C2","C3","C4","C5","C6",
+    # Group D
+    "D1","D2","D3","D4","D5","D6",
+    # Group E
+    "E1","E2","E3","E4","E5","E6",
+    # Group F
+    "F1","F2","F3","F4","F5","F6",
+    # Group G
+    "G1","G2","G3","G4","G5","G6",
+    # Group H
+    "H1","H2","H3","H4","H5","H6",
+    # Group I
+    "I1","I2","I3","I4","I5","I6",
+    # Group J
+    "J1","J2","J3","J4","J5","J6",
+    # Group K
+    "K1","K2","K3","K4","K5","K6",
+    # Group L
+    "L1","L2","L3","L4","L5","L6",
+    # Round of 32 (teams TBD after group stage)
+    "R32_1","R32_2","R32_3","R32_4","R32_5","R32_6","R32_7","R32_8",
+    "R32_9","R32_10","R32_11","R32_12","R32_13","R32_14","R32_15","R32_16",
+    # Round of 16
+    "R16_1","R16_2","R16_3","R16_4","R16_5","R16_6","R16_7","R16_8",
+    # Quarterfinals
+    "QF_1","QF_2","QF_3","QF_4",
+    # Semifinals
+    "SF_1","SF_2",
+    # 3rd place
+    "3RD",
+    # Final
+    "FINAL"
+  ),
+  round = c(
+    rep("Group A", 6), rep("Group B", 6), rep("Group C", 6),
+    rep("Group D", 6), rep("Group E", 6), rep("Group F", 6),
+    rep("Group G", 6), rep("Group H", 6), rep("Group I", 6),
+    rep("Group J", 6), rep("Group K", 6), rep("Group L", 6),
+    rep("Round of 32", 16),
+    rep("Round of 16", 8),
+    rep("Quarterfinal", 4),
+    rep("Semifinal", 2),
+    "Third Place",
+    "Final"
+  ),
+  date = c(
+    # Group A
+    "2026-06-11","2026-06-11","2026-06-18","2026-06-18","2026-06-24","2026-06-24",
+    # Group B
+    "2026-06-12","2026-06-13","2026-06-18","2026-06-18","2026-06-24","2026-06-24",
+    # Group C
+    "2026-06-13","2026-06-13","2026-06-19","2026-06-19","2026-06-24","2026-06-24",
+    # Group D
+    "2026-06-12","2026-06-13","2026-06-19","2026-06-19","2026-06-25","2026-06-25",
+    # Group E
+    "2026-06-14","2026-06-14","2026-06-20","2026-06-20","2026-06-25","2026-06-25",
+    # Group F
+    "2026-06-14","2026-06-14","2026-06-20","2026-06-20","2026-06-25","2026-06-25",
+    # Group G
+    "2026-06-15","2026-06-15","2026-06-21","2026-06-21","2026-06-26","2026-06-26",
+    # Group H
+    "2026-06-15","2026-06-15","2026-06-21","2026-06-21","2026-06-26","2026-06-26",
+    # Group I
+    "2026-06-16","2026-06-16","2026-06-22","2026-06-22","2026-06-26","2026-06-26",
+    # Group J
+    "2026-06-16","2026-06-16","2026-06-22","2026-06-22","2026-06-27","2026-06-27",
+    # Group K
+    "2026-06-17","2026-06-17","2026-06-23","2026-06-23","2026-06-27","2026-06-27",
+    # Group L
+    "2026-06-17","2026-06-17","2026-06-23","2026-06-23","2026-06-27","2026-06-27",
+    # Round of 32 (dates approximate)
+    rep("2026-06-29", 4), rep("2026-06-30", 4), rep("2026-07-01", 4), rep("2026-07-02", 4),
+    # Round of 16
+    rep("2026-07-04", 2), rep("2026-07-05", 2), rep("2026-07-06", 2), rep("2026-07-07", 2),
+    # Quarterfinals
+    "2026-07-09","2026-07-10","2026-07-11","2026-07-12",
+    # Semifinals
+    "2026-07-14","2026-07-15",
+    # 3rd place & Final
+    "2026-07-18","2026-07-19"
+  ),
+  team1 = c(
+    # Group A
+    "Mexico","South Korea","Czechia","Mexico","Czechia","South Africa",
+    # Group B
+    "Canada","Qatar","Switzerland","Canada","Switzerland","Bosnia and Herzegovina",
+    # Group C
+    "Brazil","Haiti","Scotland","Brazil","Scotland","Morocco",
+    # Group D
+    "United States","Australia","Türkiye","United States","Türkiye","Paraguay",
+    # Group E
+    "Germany","Ivory Coast","Germany","Ecuador","Curaçao","Ecuador",
+    # Group F
+    "Netherlands","Sweden","Netherlands","Tunisia","Japan","Tunisia",
+    # Group G
+    "Belgium","Iran","Belgium","New Zealand","Egypt","New Zealand",
+    # Group H
+    "Spain","Saudi Arabia","Spain","Uruguay","Cape Verde","Uruguay",
+    # Group I
+    "France","Iraq","France","Norway","Norway","Senegal",
+    # Group J
+    "Argentina","Austria","Argentina","Jordan","Argentina","Algeria",
+    # Group K
+    "Portugal","Uzbekistan","Portugal","Colombia","Colombia","DR Congo",
+    # Group L
+    "England","Ghana","England","Panama","Panama","Croatia",
+    # Knockout — TBD
+    rep("TBD", 16), rep("TBD", 8), rep("TBD", 4), rep("TBD", 2), "TBD", "TBD"
+  ),
+  team2 = c(
+    # Group A
+    "South Africa","Czechia","South Africa","South Korea","Mexico","South Korea",
+    # Group B
+    "Bosnia and Herzegovina","Switzerland","Bosnia and Herzegovina","Qatar","Canada","Qatar",
+    # Group C
+    "Morocco","Scotland","Morocco","Haiti","Brazil","Haiti",
+    # Group D
+    "Paraguay","Türkiye","Paraguay","Australia","United States","Australia",
+    # Group E
+    "Curaçao","Ecuador","Ivory Coast","Curaçao","Ivory Coast","Germany",
+    # Group F
+    "Japan","Tunisia","Sweden","Japan","Sweden","Netherlands",
+    # Group G
+    "Egypt","New Zealand","Iran","Egypt","Iran","Belgium",
+    # Group H
+    "Cape Verde","Uruguay","Saudi Arabia","Cape Verde","Saudi Arabia","Spain",
+    # Group I
+    "Senegal","Norway","Iraq","Senegal","France","Iraq",
+    # Group J
+    "Algeria","Jordan","Austria","Algeria","Jordan","Austria",
+    # Group K
+    "DR Congo","Colombia","Uzbekistan","DR Congo","Portugal","Uzbekistan",
+    # Group L
+    "Croatia","Panama","Ghana","Croatia","England","Ghana",
+    # Knockout — TBD
+    rep("TBD", 16), rep("TBD", 8), rep("TBD", 4), rep("TBD", 2), "TBD", "TBD"
+  ),
+  venue = c(
+    # Group A
+    "Estadio Azteca, Mexico City","Estadio Akron, Guadalajara","Mercedes-Benz Stadium, Atlanta",
+    "Estadio Akron, Guadalajara","Estadio Azteca, Mexico City","Estadio BBVA, Monterrey",
+    # Group B
+    "BMO Field, Toronto","Levi's Stadium, Santa Clara","SoFi Stadium, Los Angeles",
+    "BC Place, Vancouver","BC Place, Vancouver","Lumen Field, Seattle",
+    # Group C
+    "MetLife Stadium, New York/NJ","Gillette Stadium, Boston","Gillette Stadium, Boston",
+    "Lincoln Financial Field, Philadelphia","Hard Rock Stadium, Miami","Mercedes-Benz Stadium, Atlanta",
+    # Group D
+    "SoFi Stadium, Los Angeles","BC Place, Vancouver","Levi's Stadium, Santa Clara",
+    "Lumen Field, Seattle","SoFi Stadium, Los Angeles","Levi's Stadium, Santa Clara",
+    # Group E
+    "NRG Stadium, Houston","Lincoln Financial Field, Philadelphia","BMO Field, Toronto",
+    "Arrowhead Stadium, Kansas City","Lincoln Financial Field, Philadelphia","MetLife Stadium, New York/NJ",
+    # Group F
+    "AT&T Stadium, Dallas","Estadio BBVA, Monterrey","NRG Stadium, Houston",
+    "Estadio BBVA, Monterrey","AT&T Stadium, Dallas","Arrowhead Stadium, Kansas City",
+    # Group G
+    "Lumen Field, Seattle","SoFi Stadium, Los Angeles","SoFi Stadium, Los Angeles",
+    "BC Place, Vancouver","Lumen Field, Seattle","BC Place, Vancouver",
+    # Group H
+    "Mercedes-Benz Stadium, Atlanta","Hard Rock Stadium, Miami","Mercedes-Benz Stadium, Atlanta",
+    "Hard Rock Stadium, Miami","NRG Stadium, Houston","Estadio Akron, Guadalajara",
+    # Group I
+    "MetLife Stadium, New York/NJ","Gillette Stadium, Boston","Lincoln Financial Field, Philadelphia",
+    "MetLife Stadium, New York/NJ","MetLife Stadium, New York/NJ","Gillette Stadium, Boston",
+    # Group J
+    "Arrowhead Stadium, Kansas City","Levi's Stadium, Santa Clara","AT&T Stadium, Dallas",
+    "Levi's Stadium, Santa Clara","Arrowhead Stadium, Kansas City","Hard Rock Stadium, Miami",
+    # Group K
+    "NRG Stadium, Houston","Estadio Azteca, Mexico City","Arrowhead Stadium, Kansas City",
+    "Hard Rock Stadium, Miami","BC Place, Vancouver","Estadio Azteca, Mexico City",
+    # Group L
+    "AT&T Stadium, Dallas","BMO Field, Toronto","MetLife Stadium, New York/NJ",
+    "Estadio BBVA, Monterrey","Hard Rock Stadium, Miami","Mercedes-Benz Stadium, Atlanta",
+    # Knockout
+    rep("TBD", 16), rep("TBD", 8), rep("TBD", 4), rep("TBD", 2), "TBD",
+    "MetLife Stadium, New York/NJ"
+  ),
+  stringsAsFactors = FALSE
+)
+
+# ── VOTES (empty — filled by users) ─────────────────────────────────────────
+votes <- data.frame(
+  vote_id    = character(0),
+  player     = character(0),
+  match_id   = character(0),
+  pick       = character(0),
+  timestamp  = character(0),
+  stringsAsFactors = FALSE
+)
+
+# ── RESULTS (empty — filled by admin) ───────────────────────────────────────
+results <- data.frame(
+  match_id = character(0),
+  winner   = character(0),   # team name, or "draw" for group stage draws
+  score    = character(0),   # e.g. "2-1"
+  stringsAsFactors = FALSE
+)
+
+# ── WRITE WORKBOOK ────────────────────────────────────────────────────────────
+wb <- wb_workbook(creator = "WC2026 Challenge")
+
+wb$add_worksheet("matches")
+wb$add_data(sheet = "matches", x = matches, start_row = 1, start_col = 1)
+
+wb$add_worksheet("votes")
+wb$add_data(sheet = "votes", x = votes, start_row = 1, start_col = 1)
+
+wb$add_worksheet("results")
+wb$add_data(sheet = "results", x = results, start_row = 1, start_col = 1)
+
+
+for (sheet in c("matches","votes","results")) {
+  ncols <- ncol(get(sheet)) + 1
+}
+
+wb$save(here::here("data", "votes.xlsx"))
