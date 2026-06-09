@@ -8,9 +8,9 @@ ui <- page_navbar(
   window_title = "WC2026 Challenge",
   theme = bs_theme(
     version        = 5,
-    bg             = "#0a0f0d",
-    fg             = "#f0ede4",
-    primary        = "#006633",
+    bg             = "#D1D4D1",
+    fg             = "#474A4A",
+    primary        = "#2A398D",
     secondary      = "#c9a84c",
     success        = "#198754",
     info           = "#1a7abf",
@@ -19,13 +19,13 @@ ui <- page_navbar(
     base_font      = font_google("DM Sans"),
     heading_font   = font_google("Bebas Neue"),
     font_scale     = 0.95,
-    "navbar-bg"    = "#0e1a10",
+    "navbar-bg"    = "#474A4A",
     "navbar-dark"  = TRUE,
-    "body-bg"      = "#0a0f0d",
-    "card-bg"      = "#1a2419",
+    "body-bg"      = "#D1D4D1",
+    "card-bg"      = "#D1D4D1",
     "card-border-color" = "#2a3a2c",
-    "table-bg"     = "#1a2419",
-    "table-striped-bg" = "#1e2b20"
+    "table-bg"     = "#D1D4D1",
+    "table-striped-bg" = "#FFFFFF"
   ),
   useShinyjs(),
   
@@ -35,19 +35,19 @@ ui <- page_navbar(
       :root {
         --wc-gold: #c9a84c;
         --wc-gold-light: #f0d88a;
-        --wc-green: #006633;
-        --wc-green-dark: #004422;
-        --wc-surface: #1a2419;
-        --wc-surface2: #1e2b20;
+        --wc-green: #2A398D;
+        --wc-green-dark: #1a2a6e;
+        --wc-surface: #D1D4D1;
+        --wc-surface2: #FFFFFF;
         --wc-border: rgba(201,168,76,0.22);
-        --wc-muted: #7a8f7c;
+        --wc-muted: #474A4A;
       }
-
-      body { background-color: #0a0f0d !important; }
-
+ 
+      body { background-color: #D1D4D1 !important; }
+ 
       /* Hero banner */
       .wc-hero {
-        background: linear-gradient(135deg, #004422 0%, #002211 100%);
+        background: linear-gradient(135deg, #2A398D 0%, #1a2a6e 100%);
         border-bottom: 2px solid var(--wc-gold);
         padding: 2rem 1.5rem 1.5rem;
         text-align: center;
@@ -72,7 +72,7 @@ ui <- page_navbar(
         position: relative;
       }
       .wc-hero .subtitle {
-        color: rgba(240,237,228,0.55);
+        color: rgba(255,255,255,0.75);
         letter-spacing: 0.15em;
         text-transform: uppercase;
         font-size: 0.82rem;
@@ -90,10 +90,10 @@ ui <- page_navbar(
         border: 1px solid rgba(201,168,76,0.3);
         padding: 0.25rem 0.75rem; border-radius: 100px;
       }
-
+ 
       /* Player bar */
       .player-bar {
-        background: #0e1a10;
+        background: #474A4A;
         border-bottom: 1px solid var(--wc-border);
         padding: 0.6rem 1.2rem;
         display: flex; align-items: center;
@@ -101,8 +101,8 @@ ui <- page_navbar(
       }
       .player-name { color: var(--wc-gold); font-weight: 600; font-size: 0.95rem; }
       .player-score { color: var(--wc-muted); font-size: 0.82rem; }
-      .player-score strong { color: #f0ede4; }
-
+      .player-score strong { color: #FFFFFF; }
+ 
       /* Match card */
       .match-card {
         background: var(--wc-surface);
@@ -122,13 +122,13 @@ ui <- page_navbar(
         display: flex; align-items: center;
         gap: 0.4rem; justify-content: space-between;
       }
-
+ 
       /* Team vote buttons */
       .team-vote-btn {
         flex: 1;
         background: transparent !important;
         border: 1px solid rgba(255,255,255,0.14) !important;
-        color: #f0ede4 !important;
+        color: #FFFFFF !important;
         padding: 0.4rem 0.3rem !important;
         border-radius: 5px !important;
         font-size: 0.78rem !important;
@@ -149,9 +149,9 @@ ui <- page_navbar(
         border-color: var(--wc-gold) !important;
       }
       .team-vote-btn.selected {
-        background: #004422 !important;
-        border-color: #44cc66 !important;
-        color: #ccffcc !important;
+        background: #2A398D !important;
+        border-color: #5060b0 !important;
+        color: #FFFFFF !important;
         font-weight: 600 !important;
       }
       .team-vote-btn.result-correct {
@@ -166,12 +166,12 @@ ui <- page_navbar(
       }
       .team-vote-btn .flag { font-size: 1.1rem; line-height: 1; }
       .team-vote-btn .tname { font-size: 0.72rem; }
-
+ 
       .vs-sep {
         font-size: 0.65rem; font-weight: 700;
         color: var(--wc-muted); flex-shrink: 0; padding: 0 2px;
       }
-
+ 
       .match-footer {
         margin-top: 0.3rem; font-size: 0.67rem;
         color: var(--wc-muted); text-align: center;
@@ -197,7 +197,7 @@ ui <- page_navbar(
         border-radius: 3px; padding: 1px 6px;
         font-size: 0.68rem;
       }
-
+ 
       /* Group header */
       .group-header-bar {
         background: linear-gradient(90deg, var(--wc-green) 0%, var(--wc-green-dark) 100%);
@@ -213,8 +213,8 @@ ui <- page_navbar(
         font-size: 1.15rem; letter-spacing: 0.08em;
         color: var(--wc-gold-light);
       }
-      .group-teams-mini { font-size: 0.68rem; color: rgba(240,237,228,0.5); }
-
+      .group-teams-mini { font-size: 0.68rem; color: rgba(255,255,255,0.75); }
+ 
       /* Group card wrapper */
       .group-card-wrap {
         background: var(--wc-surface);
@@ -224,7 +224,7 @@ ui <- page_navbar(
         padding: 0.5rem;
         margin-bottom: 1.25rem;
       }
-
+ 
       /* Bracket round card */
       .bracket-match-card {
         background: var(--wc-surface);
@@ -245,9 +245,9 @@ ui <- page_navbar(
         padding-bottom: 0.4rem;
         border-bottom: 1px solid var(--wc-border);
       }
-
+ 
       /* Leaderboard table */
-      #leaderboard-table table { color: #f0ede4 !important; }
+      #leaderboard-table table { color: #FFFFFF !important; }
       #leaderboard-table th {
         background: var(--wc-green) !important;
         color: var(--wc-gold-light) !important;
@@ -256,11 +256,12 @@ ui <- page_navbar(
         border: none !important;
       }
       #leaderboard-table td {
-        border-color: rgba(255,255,255,0.06) !important;
+        border-color: rgba(42,57,141,0.1) !important;
         font-size: 0.88rem !important;
+        color: #474A4A !important;
       }
       #leaderboard-table tr:hover td { background: rgba(201,168,76,0.06) !important; }
-
+ 
       /* Nav pills for group selector */
       .group-nav .nav-link {
         font-family: 'Bebas Neue', sans-serif !important;
@@ -275,23 +276,23 @@ ui <- page_navbar(
         background: var(--wc-green) !important;
         color: var(--wc-gold-light) !important;
       }
-
+ 
       /* Score pill */
       .score-pill {
         display: inline-block;
-        background: #004422; color: #66ee88;
+        background: #2A398D; color: #FFFFFF;
         border-radius: 100px; padding: 0.15rem 0.7rem;
         font-size: 0.78rem; font-weight: 600;
       }
       .rank-gold { color: var(--wc-gold); font-weight: 700; }
       .rank-silver { color: #aaaaaa; font-weight: 700; }
       .rank-bronze { color: #cd7f32; font-weight: 700; }
-
+ 
       /* Inputs */
       .form-control, .form-select {
-        background: #1a2419 !important;
+        background: #FFFFFF !important;
         border-color: var(--wc-border) !important;
-        color: #f0ede4 !important;
+        color: #474A4A !important;
       }
       .form-control:focus {
         border-color: var(--wc-gold) !important;
@@ -300,7 +301,7 @@ ui <- page_navbar(
       .btn-wc-green {
         background: var(--wc-green) !important;
         border-color: var(--wc-green) !important;
-        color: #ccffcc !important;
+        color: #FFFFFF !important;
         font-weight: 600;
       }
       .btn-wc-gold {
@@ -311,9 +312,9 @@ ui <- page_navbar(
       }
       .btn-wc-gold:hover {
         background: var(--wc-gold) !important;
-        color: #0a0f0d !important;
+        color: #FFFFFF !important;
       }
-
+ 
       /* Tabs */
       .nav-tabs .nav-link {
         color: var(--wc-muted) !important;
@@ -330,17 +331,17 @@ ui <- page_navbar(
         background: transparent !important;
       }
       .nav-tabs { border-bottom: 1px solid var(--wc-border) !important; }
-
+ 
       .tab-content { padding-top: 1.25rem; }
-
+ 
       /* Notification */
       .shiny-notification {
-        background: #004422 !important;
-        color: #ccffcc !important;
-        border-left: 3px solid #44cc66 !important;
+        background: #2A398D !important;
+        color: #FFFFFF !important;
+        border-left: 3px solid #D4AF37 !important;
         font-size: 0.88rem !important;
       }
-
+ 
       /* Admin panel */
       .admin-section {
         background: rgba(180,50,50,0.07);
@@ -379,10 +380,10 @@ ui <- page_navbar(
     conditionalPanel(
       condition = "output.user_logged_in == false",
       div(
-        style = "background:#0e1a10; border-bottom:1px solid rgba(201,168,76,0.22); padding:2rem 1.5rem; text-align:center;",
+        style = "background:#474A4A; border-bottom:1px solid rgba(201,168,76,0.22); padding:2rem 1.5rem; text-align:center;",
         h4(style = "font-family:'Bebas Neue',sans-serif; color:#f0d88a; letter-spacing:0.06em; font-size:1.8rem; margin-bottom:0.3rem;",
            "Join the Challenge"),
-        p(style = "color:#7a8f7c; font-size:0.85rem; margin-bottom:1.2rem;",
+        p(style = "color:#474A4A; font-size:0.85rem; margin-bottom:1.2rem;",
           "Enter your name to start predicting match winners and scoring points."),
         div(style = "display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap;",
             textInput("player_name_input", NULL,
@@ -506,7 +507,7 @@ ui <- page_navbar(
   
   nav_spacer(),
   nav_item(
-    tags$small(style = "color:#7a8f7c; padding:0 0.75rem;",
+    tags$small(style = "color:#474A4A; padding:0 0.75rem;",
                "June 11 – July 19, 2026")
   )
 )

@@ -1,5 +1,6 @@
 # app file
 # can run locally or deploy
+library(here)
 
 source(here::here("app","global.R"))
 source(here::here("app","ui.R"))

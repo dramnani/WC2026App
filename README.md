@@ -1,2 +1,2 @@
-# WC App
+# WC 2026 Challenge App 
 
