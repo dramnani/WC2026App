@@ -1,16 +1,23 @@
-# server
-
+# server.R
 
 server <- function(input, output, session) {
   
   # ── Reactive state ──────────────────────────────────────────────────────────
   rv <- reactiveValues(
-    player        = NULL,
-    admin_ok      = FALSE,
-    data_version  = 0    # increment to trigger re-reads after writes
+    player       = NULL,   # logged-in username (NULL = not logged in)
+    admin_ok     = FALSE,
+    data_version = 0
   )
   
-  autoInvalidate <- reactiveTimer(30000)   # refresh every 30 s
+  autoInvalidate <- reactiveTimer(30000)
+  
+  # Show auth modal on session start
+  observe({
+    if (is.null(rv$player))
+      session$sendCustomMessage("show_auth_modal", list())
+    else
+      session$sendCustomMessage("hide_auth_modal", list())
+  })
   
   # ── Reactive data ───────────────────────────────────────────────────────────
   r_matches <- reactive({

@@ -1,4 +1,5 @@
 # ui file
+# ui file
 
 ui <- page_navbar(
   title = tags$span(
@@ -42,9 +43,9 @@ ui <- page_navbar(
         --wc-border: rgba(201,168,76,0.22);
         --wc-muted: #474A4A;
       }
- 
+
       body { background-color: #D1D4D1 !important; }
- 
+
       /* Hero banner */
       .wc-hero {
         background: linear-gradient(135deg, #2A398D 0%, #1a2a6e 100%);
@@ -72,7 +73,7 @@ ui <- page_navbar(
         position: relative;
       }
       .wc-hero .subtitle {
-        color: rgba(255,255,255,0.75);
+        color: rgba(240,237,228,0.55);
         letter-spacing: 0.15em;
         text-transform: uppercase;
         font-size: 0.82rem;
@@ -90,10 +91,10 @@ ui <- page_navbar(
         border: 1px solid rgba(201,168,76,0.3);
         padding: 0.25rem 0.75rem; border-radius: 100px;
       }
- 
+
       /* Player bar */
       .player-bar {
-        background: #474A4A;
+        background: #0e1a10;
         border-bottom: 1px solid var(--wc-border);
         padding: 0.6rem 1.2rem;
         display: flex; align-items: center;
@@ -102,7 +103,7 @@ ui <- page_navbar(
       .player-name { color: var(--wc-gold); font-weight: 600; font-size: 0.95rem; }
       .player-score { color: var(--wc-muted); font-size: 0.82rem; }
       .player-score strong { color: #FFFFFF; }
- 
+
       /* Match card */
       .match-card {
         background: var(--wc-surface);
@@ -122,7 +123,7 @@ ui <- page_navbar(
         display: flex; align-items: center;
         gap: 0.4rem; justify-content: space-between;
       }
- 
+
       /* Team vote buttons */
       .team-vote-btn {
         flex: 1;
@@ -150,7 +151,7 @@ ui <- page_navbar(
       }
       .team-vote-btn.selected {
         background: #2A398D !important;
-        border-color: #5060b0 !important;
+        border-color: #44cc66 !important;
         color: #FFFFFF !important;
         font-weight: 600 !important;
       }
@@ -166,12 +167,12 @@ ui <- page_navbar(
       }
       .team-vote-btn .flag { font-size: 1.1rem; line-height: 1; }
       .team-vote-btn .tname { font-size: 0.72rem; }
- 
+
       .vs-sep {
         font-size: 0.65rem; font-weight: 700;
         color: var(--wc-muted); flex-shrink: 0; padding: 0 2px;
       }
- 
+
       .match-footer {
         margin-top: 0.3rem; font-size: 0.67rem;
         color: var(--wc-muted); text-align: center;
@@ -197,7 +198,7 @@ ui <- page_navbar(
         border-radius: 3px; padding: 1px 6px;
         font-size: 0.68rem;
       }
- 
+
       /* Group header */
       .group-header-bar {
         background: linear-gradient(90deg, var(--wc-green) 0%, var(--wc-green-dark) 100%);
@@ -213,8 +214,8 @@ ui <- page_navbar(
         font-size: 1.15rem; letter-spacing: 0.08em;
         color: var(--wc-gold-light);
       }
-      .group-teams-mini { font-size: 0.68rem; color: rgba(255,255,255,0.75); }
- 
+      .group-teams-mini { font-size: 0.68rem; color: rgba(240,237,228,0.5); }
+
       /* Group card wrapper */
       .group-card-wrap {
         background: var(--wc-surface);
@@ -224,7 +225,7 @@ ui <- page_navbar(
         padding: 0.5rem;
         margin-bottom: 1.25rem;
       }
- 
+
       /* Bracket round card */
       .bracket-match-card {
         background: var(--wc-surface);
@@ -245,7 +246,7 @@ ui <- page_navbar(
         padding-bottom: 0.4rem;
         border-bottom: 1px solid var(--wc-border);
       }
- 
+
       /* Leaderboard table */
       #leaderboard-table table { color: #FFFFFF !important; }
       #leaderboard-table th {
@@ -256,12 +257,11 @@ ui <- page_navbar(
         border: none !important;
       }
       #leaderboard-table td {
-        border-color: rgba(42,57,141,0.1) !important;
+        border-color: rgba(255,255,255,0.06) !important;
         font-size: 0.88rem !important;
-        color: #474A4A !important;
       }
       #leaderboard-table tr:hover td { background: rgba(201,168,76,0.06) !important; }
- 
+
       /* Nav pills for group selector */
       .group-nav .nav-link {
         font-family: 'Bebas Neue', sans-serif !important;
@@ -276,7 +276,7 @@ ui <- page_navbar(
         background: var(--wc-green) !important;
         color: var(--wc-gold-light) !important;
       }
- 
+
       /* Score pill */
       .score-pill {
         display: inline-block;
@@ -287,12 +287,12 @@ ui <- page_navbar(
       .rank-gold { color: var(--wc-gold); font-weight: 700; }
       .rank-silver { color: #aaaaaa; font-weight: 700; }
       .rank-bronze { color: #cd7f32; font-weight: 700; }
- 
+
       /* Inputs */
       .form-control, .form-select {
         background: #FFFFFF !important;
         border-color: var(--wc-border) !important;
-        color: #474A4A !important;
+        color: #f0ede4 !important;
       }
       .form-control:focus {
         border-color: var(--wc-gold) !important;
@@ -314,7 +314,7 @@ ui <- page_navbar(
         background: var(--wc-gold) !important;
         color: #FFFFFF !important;
       }
- 
+
       /* Tabs */
       .nav-tabs .nav-link {
         color: var(--wc-muted) !important;
@@ -331,9 +331,9 @@ ui <- page_navbar(
         background: transparent !important;
       }
       .nav-tabs { border-bottom: 1px solid var(--wc-border) !important; }
- 
+
       .tab-content { padding-top: 1.25rem; }
- 
+
       /* Notification */
       .shiny-notification {
         background: #2A398D !important;
@@ -341,7 +341,7 @@ ui <- page_navbar(
         border-left: 3px solid #D4AF37 !important;
         font-size: 0.88rem !important;
       }
- 
+
       /* Admin panel */
       .admin-section {
         background: rgba(180,50,50,0.07);
@@ -352,6 +352,92 @@ ui <- page_navbar(
         font-family: 'Bebas Neue', sans-serif;
         font-size: 1.2rem; color: #e06060; letter-spacing: 0.08em;
         margin-bottom: 0.75rem;
+      }
+
+      /* ── Auth modal ───────────────────────────────────────────────────── */
+      .auth-modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.82); z-index: 9999;
+        align-items: center; justify-content: center;
+      }
+      .auth-modal-overlay.open { display: flex; }
+      .auth-modal {
+        background: #1a2419; border: 1px solid rgba(201,168,76,0.35);
+        border-radius: 12px; padding: 2rem; width: min(400px, 92vw);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      }
+      .auth-modal h3 {
+        font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem;
+        color: #f0d88a; letter-spacing: 0.06em; margin-bottom: 0.25rem;
+      }
+      .auth-modal .auth-sub {
+        font-size: 0.82rem; color: #7a8f7c; margin-bottom: 1.25rem;
+      }
+      .auth-tabs { display: flex; gap: 0; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(201,168,76,0.2); }
+      .auth-tab-btn {
+        flex: 1; background: none; border: none; color: #7a8f7c;
+        font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+        font-weight: 600; padding: 0.55rem; cursor: pointer;
+        border-bottom: 2px solid transparent; text-transform: uppercase;
+        letter-spacing: 0.08em; transition: all 0.15s;
+      }
+      .auth-tab-btn.active { color: #c9a84c; border-bottom-color: #c9a84c; }
+      .auth-field { margin-bottom: 0.85rem; }
+      .auth-field label { display: block; font-size: 0.75rem; color: #7a8f7c;
+        text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+      .auth-error { color: #d07070; font-size: 0.82rem; margin: 0.5rem 0; min-height: 1.1rem; }
+      .auth-success { color: #6fdb9a; font-size: 0.82rem; margin: 0.5rem 0; }
+      .auth-footer { font-size: 0.75rem; color: #576857; margin-top: 1rem; text-align: center; }
+
+      /* ── Teams ─────────────────────────────────────────────────────────── */
+      .teams-section-title {
+        font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+        color: var(--wc-gold-light); letter-spacing: 0.08em; margin-bottom: 0.75rem;
+      }
+      .team-cards-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.5rem; }
+      .team-card {
+        background: var(--wc-surface); border: 1px solid var(--wc-border);
+        border-radius: 8px; padding: 0.8rem 1rem; min-width: 160px;
+        display: flex; flex-direction: column; gap: 0.3rem;
+      }
+      .team-card-name { font-weight: 600; font-size: 0.92rem; color: #f0ede4; }
+      .team-card-meta { font-size: 0.75rem; color: var(--wc-muted); }
+      .team-leave-btn {
+        background: transparent !important; border: 1px solid rgba(204,51,51,0.45) !important;
+        color: #d07070 !important; font-size: 0.72rem !important;
+        padding: 0.2rem 0.6rem !important; margin-top: 0.35rem; align-self: flex-start;
+      }
+      .team-leave-btn:hover { background: rgba(204,51,51,0.15) !important; }
+      .teams-input-label { font-size: 0.74rem; color: var(--wc-muted);
+        text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+      .team-msg-ok  { color: #6fdb9a; font-size: 0.82rem; margin-top: 0.4rem; }
+      .team-msg-err { color: #d07070; font-size: 0.82rem; margin-top: 0.4rem; }
+      .all-teams-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .all-team-chip {
+        background: var(--wc-surface); border: 1px solid var(--wc-border);
+        border-radius: 100px; padding: 0.3rem 0.85rem;
+        display: flex; align-items: center; gap: 0.5rem;
+      }
+      .all-team-name  { font-size: 0.82rem; font-weight: 600; color: #f0ede4; }
+      .all-team-count { font-size: 0.7rem;  color: var(--wc-muted); }
+
+      /* ── Leaderboard sub-tabs ──────────────────────────────────────────── */
+      .lb-subtabs {
+        display: flex; gap: 4px; margin: 0.75rem 0 1.25rem;
+        border-bottom: 1px solid var(--wc-border); padding-bottom: 0;
+      }
+      .lb-subtab-btn {
+        background: none; border: none; color: var(--wc-muted);
+        font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+        padding: 0.5rem 1.1rem; cursor: pointer; border-bottom: 2px solid transparent;
+        text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.15s;
+        margin-bottom: -1px;
+      }
+      .lb-subtab-btn.active { color: var(--wc-gold); border-bottom-color: var(--wc-gold); }
+      .lb-subtab-btn:hover  { color: #f0ede4; }
+      .lb-section-title {
+        font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem;
+        color: var(--wc-gold-light); letter-spacing: 0.08em; margin-bottom: 0.85rem;
       }
     "))
   ),
@@ -376,24 +462,71 @@ ui <- page_navbar(
     # Player bar
     uiOutput("player_bar_ui"),
     
-    # Name entry (conditional)
-    conditionalPanel(
-      condition = "output.user_logged_in == false",
-      div(
-        style = "background:#474A4A; border-bottom:1px solid rgba(201,168,76,0.22); padding:2rem 1.5rem; text-align:center;",
-        h4(style = "font-family:'Bebas Neue',sans-serif; color:#f0d88a; letter-spacing:0.06em; font-size:1.8rem; margin-bottom:0.3rem;",
-           "Join the Challenge"),
-        p(style = "color:#474A4A; font-size:0.85rem; margin-bottom:1.2rem;",
-          "Enter your name to start predicting match winners and scoring points."),
-        div(style = "display:flex; gap:0.6rem; justify-content:center; flex-wrap:wrap;",
-            textInput("player_name_input", NULL,
-                      placeholder = "Your name…",
-                      width = "260px"),
-            actionButton("join_btn", "Enter →",
-                         class = "btn btn-wc-green")
-        )
+    # ── Auth modal (login / register) ─────────────────────────────────────────
+    # Shown when no user is logged in; hidden once authenticated
+    div(
+      id = "auth-modal-overlay", class = "auth-modal-overlay",
+      div(class = "auth-modal",
+          h3("Join the Challenge"),
+          div(class = "auth-sub", "Create an account or log in to save your picks"),
+          # Tab switcher
+          div(class = "auth-tabs",
+              tags$button("Log In",   id = "auth-tab-login",    class = "auth-tab-btn active",
+                          onclick = "switchAuthTab('login')"),
+              tags$button("Register", id = "auth-tab-register", class = "auth-tab-btn",
+                          onclick = "switchAuthTab('register')")
+          ),
+          # Login form
+          div(id = "auth-form-login",
+              div(class = "auth-field",
+                  tags$label("Username"),
+                  textInput("login_username", NULL, placeholder = "Your username", width = "100%")
+              ),
+              div(class = "auth-field",
+                  tags$label("Password"),
+                  passwordInput("login_password", NULL, placeholder = "Your password", width = "100%")
+              ),
+              uiOutput("login_error_ui"),
+              actionButton("login_btn", "Log In →",
+                           class = "btn btn-wc-green w-100", style = "margin-top:0.25rem;")
+          ),
+          # Register form (hidden by default)
+          div(id = "auth-form-register", style = "display:none;",
+              div(class = "auth-field",
+                  tags$label("Choose a username"),
+                  textInput("reg_username", NULL, placeholder = "e.g. Rodrigo or PabloFC", width = "100%")
+              ),
+              div(class = "auth-field",
+                  tags$label("Choose a password"),
+                  passwordInput("reg_password", NULL, placeholder = "At least 4 characters", width = "100%")
+              ),
+              div(class = "auth-field",
+                  tags$label("Confirm password"),
+                  passwordInput("reg_password2", NULL, placeholder = "Repeat password", width = "100%")
+              ),
+              uiOutput("register_error_ui"),
+              actionButton("register_btn", "Create Account →",
+                           class = "btn btn-wc-green w-100", style = "margin-top:0.25rem;")
+          ),
+          div(class = "auth-footer", "Your picks are saved to your account and persist across sessions.")
       )
     ),
+    # JS for tab switching
+    tags$script(HTML("
+      function switchAuthTab(tab) {
+        document.getElementById('auth-form-login').style.display    = tab==='login'    ? '' : 'none';
+        document.getElementById('auth-form-register').style.display = tab==='register' ? '' : 'none';
+        document.getElementById('auth-tab-login').classList.toggle('active',    tab==='login');
+        document.getElementById('auth-tab-register').classList.toggle('active', tab==='register');
+      }
+      // Show modal when Shiny signals user is logged out
+      Shiny.addCustomMessageHandler('show_auth_modal', function(x) {
+        document.getElementById('auth-modal-overlay').classList.add('open');
+      });
+      Shiny.addCustomMessageHandler('hide_auth_modal', function(x) {
+        document.getElementById('auth-modal-overlay').classList.remove('open');
+      });
+    ")),
     
     # Tabs: Groups | Knockout | Leaderboard
     div(
@@ -406,7 +539,8 @@ ui <- page_navbar(
         tabPanel("Quarterfinals",  value = "qf",        uiOutput("qf_ui")),
         tabPanel("Semifinals",     value = "sf",        uiOutput("sf_ui")),
         tabPanel("Final",          value = "final",     uiOutput("final_ui")),
-        tabPanel("🏆 Leaderboard", value = "lb",        uiOutput("lb_ui"))
+        tabPanel("🏆 Leaderboard", value = "lb",        uiOutput("lb_ui")),
+        tabPanel("👥 My Teams",    value = "teams",    uiOutput("teams_tab_ui"))
       )
     )
   ),
@@ -507,7 +641,7 @@ ui <- page_navbar(
   
   nav_spacer(),
   nav_item(
-    tags$small(style = "color:#474A4A; padding:0 0.75rem;",
+    tags$small(style = "color:#7a8f7c; padding:0 0.75rem;",
                "June 11 – July 19, 2026")
   )
 )
