@@ -4,7 +4,7 @@ server <- function(input, output, session) {
   
   # ── Reactive state ──────────────────────────────────────────────────────────
   rv <- reactiveValues(
-    player       = NULL,   # logged-in username (NULL = not logged in)
+    player       = NULL,
     admin_ok     = FALSE,
     data_version = 0
   )
@@ -43,7 +43,6 @@ server <- function(input, output, session) {
     read_teams()
   })
   
-  # Safe: returns named character(0) when no player — never errors
   my_picks <- reactive({
     if (is.null(rv$player)) return(setNames(character(0), character(0)))
     votes <- r_votes()
@@ -52,7 +51,7 @@ server <- function(input, output, session) {
     setNames(as.character(mine$pick), as.character(mine$match_id))
   })
   
-  # ── Auth: logged-in flag for conditionalPanel ────────────────────────────────
+  # ── Auth flag for conditionalPanel ──────────────────────────────────────────
   output$user_logged_in <- reactive({ !is.null(rv$player) })
   outputOptions(output, "user_logged_in", suspendWhenHidden = FALSE)
   
@@ -63,8 +62,7 @@ server <- function(input, output, session) {
     pw1 <- input$reg_password
     pw2 <- input$reg_password2
     if (pw1 != pw2) {
-      output$register_error_ui <- renderUI(
-        div(class = "auth-error", "Passwords do not match."))
+      output$register_error_ui <- renderUI(div(class = "auth-error", "Passwords do not match."))
       return()
     }
     result <- register_user(input$reg_username, pw1)
@@ -118,7 +116,7 @@ server <- function(input, output, session) {
                               paste0(npicks, " pick", if (npicks != 1) "s" else "", " made"))
           )
         ),
-        actionButton("logout_btn", "Log out", class = "btn btn-sm btn-wc-gold")
+        actionButton("logout_btn", "Log out", class = "btn btn-sm btn-wc-outline")
     )
   })
   
@@ -137,7 +135,6 @@ server <- function(input, output, session) {
             req(rv$player)
             rest      <- sub("^vote_", "", b)
             parts     <- strsplit(rest, "_", fixed = TRUE)[[1]]
-            # Match match_id by looking up known IDs (handles R32_1, SF_1, etc.)
             matches_df <- isolate(r_matches())
             known_ids  <- as.character(matches_df$match_id)
             match_id   <- NA_character_
@@ -169,7 +166,6 @@ server <- function(input, output, session) {
   # ── Match card renderer ───────────────────────────────────────────────────────
   make_match_card <- function(match_id, team1, team2, date_str,
                               venue_str = NULL, label = NULL) {
-    # Coerce to plain scalars — guards against 1-col data frame inputs
     match_id  <- as.character(match_id[[1]])
     team1     <- as.character(team1[[1]])
     team2     <- as.character(team2[[1]])
@@ -177,11 +173,10 @@ server <- function(input, output, session) {
     venue_str <- if (!is.null(venue_str)) as.character(venue_str[[1]]) else NULL
     label     <- if (!is.null(label))     as.character(label[[1]])     else NULL
     
-    picks_now   <- my_picks()   # safe named character vector or character(0)
+    picks_now   <- my_picks()
     results_now <- r_results()
     votes_now   <- r_votes()
     
-    # Single-bracket lookup returns NA (not error) when name absent
     my_pick <- picks_now[match_id]
     if (length(my_pick) == 0 || is.na(my_pick)) my_pick <- NULL
     
@@ -229,11 +224,11 @@ server <- function(input, output, session) {
       else span(class = "wrong-badge ms-1", paste0(" \u2717 You picked ", my_pick))
     } else if (!is.null(my_pick) && !has_result) {
       footer_items[[length(footer_items)+1]] <-
-        tags$small(style = "color:#7a8f7c;",
+        tags$small(style = "color:#2a7d29;",
                    paste0("Your pick: ", flag(my_pick), " ", my_pick))
     }
     footer_items[[length(footer_items)+1]] <-
-      tags$small(style = "color:#455045; font-size:0.65rem;",
+      tags$small(style = "color:#6b6e6b; font-size:0.65rem;",
                  paste0(n1 + n2, " picks \u00b7 ", team1, ": ", n1, " / ", team2, ": ", n2))
     
     div(class = "match-card",
@@ -250,7 +245,7 @@ server <- function(input, output, session) {
   output$groups_ui <- renderUI({
     matches <- r_matches()
     if (nrow(matches) == 0)
-      return(div(style = "padding:2rem; color:#7a8f7c;", "Loading match data..."))
+      return(div(style = "padding:2rem; color:#6b6e6b;", "Loading match data\u2026"))
     
     groups <- LETTERS[1:12]
     
@@ -259,15 +254,13 @@ server <- function(input, output, session) {
       gm    <- matches[matches$round == gname, ]
       teams <- unique(c(as.character(gm$team1), as.character(gm$team2)))
       teams <- teams[teams != "TBD"]
-      team_labels <- paste(sapply(teams, function(t) paste(flag(t), t)),
-                           collapse = "  \u00b7  ")
+      team_labels <- paste(sapply(teams, function(t) paste(flag(t), t)), collapse = "  \u00b7  ")
       
       cards <- lapply(seq_len(nrow(gm)), function(i) {
         tryCatch(
-          make_match_card(gm$match_id[i], gm$team1[i], gm$team2[i],
-                          gm$date[i], gm$venue[i]),
+          make_match_card(gm$match_id[i], gm$team1[i], gm$team2[i], gm$date[i], gm$venue[i]),
           error = function(e) div(class = "match-card",
-                                  style = "color:#7a8f7c; font-size:0.8rem;", paste("Error:", e$message))
+                                  style = "color:#6b6e6b; font-size:0.8rem;", paste("Error:", e$message))
         )
       })
       
@@ -303,17 +296,16 @@ server <- function(input, output, session) {
     renderUI({
       matches <- r_matches()
       if (nrow(matches) == 0)
-        return(div(style = "padding:2rem; color:#7a8f7c;", "Loading..."))
+        return(div(style = "padding:2rem; color:#6b6e6b;", "Loading\u2026"))
       km <- matches[matches$round == round_name, ]
       if (nrow(km) == 0)
-        return(div(style = "padding:2rem; color:#7a8f7c; text-align:center;",
+        return(div(style = "padding:2rem; color:#6b6e6b; text-align:center;",
                    paste0(round_name, " matchups will appear once teams advance.")))
       cards <- lapply(seq_len(nrow(km)), function(i) {
         tryCatch(
           make_match_card(km$match_id[i], km$team1[i], km$team2[i],
                           km$date[i], km$venue[i], label = km$match_id[i]),
-          error = function(e) div(class = "match-card",
-                                  style = "color:#7a8f7c; font-size:0.8rem;", e$message)
+          error = function(e) div(class = "match-card", style = "color:#6b6e6b; font-size:0.8rem;", e$message)
         )
       })
       div(
@@ -331,14 +323,14 @@ server <- function(input, output, session) {
   
   output$final_ui <- renderUI({
     matches <- r_matches()
-    if (nrow(matches) == 0) return(p("Loading..."))
+    if (nrow(matches) == 0) return(p("Loading\u2026"))
     fm <- matches[matches$round %in% c("Third Place","Final"), ]
-    if (nrow(fm) == 0) return(p(style = "color:#7a8f7c;", "Final matchup TBD."))
+    if (nrow(fm) == 0) return(p(style = "color:#6b6e6b;", "Final matchup TBD."))
     cards <- lapply(seq_len(nrow(fm)), function(i) {
       tryCatch(
         make_match_card(fm$match_id[i], fm$team1[i], fm$team2[i],
                         fm$date[i], fm$venue[i], label = fm$round[i]),
-        error = function(e) div(class = "match-card", style = "color:#7a8f7c;", e$message)
+        error = function(e) div(class = "match-card", style = "color:#6b6e6b;", e$message)
       )
     })
     div(
@@ -351,21 +343,14 @@ server <- function(input, output, session) {
   # ── Leaderboard ───────────────────────────────────────────────────────────────
   output$lb_ui <- renderUI({
     tagList(
-      # Sub-tabs: Individual | Teams
       div(class = "lb-subtabs",
           tags$button("Individual", id = "lbtab-ind",  class = "lb-subtab-btn active",
                       onclick = "switchLbTab('ind')"),
           tags$button("Teams",      id = "lbtab-team", class = "lb-subtab-btn",
                       onclick = "switchLbTab('team')")
       ),
-      # Individual board
-      div(id = "lb-panel-ind",
-          uiOutput("lb_individual_ui")
-      ),
-      # Team board
-      div(id = "lb-panel-team", style = "display:none;",
-          uiOutput("lb_team_ui")
-      ),
+      div(id = "lb-panel-ind",  uiOutput("lb_individual_ui")),
+      div(id = "lb-panel-team", style = "display:none;", uiOutput("lb_team_ui")),
       tags$script(HTML("
         function switchLbTab(tab) {
           document.getElementById('lb-panel-ind').style.display  = tab==='ind'  ? '' : 'none';
@@ -377,11 +362,10 @@ server <- function(input, output, session) {
     )
   })
   
-  # Individual leaderboard
   output$lb_individual_ui <- renderUI({
     lb <- compute_leaderboard(r_votes(), r_results())
     if (nrow(lb) == 0)
-      return(div(style = "padding:2rem; text-align:center; color:#7a8f7c;",
+      return(div(style = "padding:2rem; text-align:center; color:#6b6e6b;",
                  "Scores will appear once match results are entered."))
     tagList(
       h4(class = "lb-section-title", "\U0001F947 Individual Rankings"),
@@ -392,7 +376,6 @@ server <- function(input, output, session) {
   output$lb_ind_table <- DT::renderDataTable({
     lb <- compute_leaderboard(r_votes(), r_results())
     if (nrow(lb) == 0) return(data.frame())
-    # get each player's teams
     teams_df <- r_teams()
     player_teams <- if (nrow(teams_df) > 0) {
       teams_df %>%
@@ -403,7 +386,7 @@ server <- function(input, output, session) {
     lb %>%
       left_join(player_teams, by = c("Player"="username")) %>%
       mutate(
-        Teams  = ifelse(is.na(Teams), "—", Teams),
+        Teams  = ifelse(is.na(Teams), "\u2014", Teams),
         `#`    = dplyr::case_when(Rank==1~"\U0001F947", Rank==2~"\U0001F948",
                                   Rank==3~"\U0001F949", TRUE~as.character(Rank)),
         Player = ifelse(!is.null(rv$player) & Player == rv$player,
@@ -412,16 +395,15 @@ server <- function(input, output, session) {
       select(`#`, Player, Teams, Points, Correct, `Total Picks` = Total_Picks)
   },
   rownames = FALSE, class = "table table-sm", elementId = "lb-ind-table",
-  options  = list(pageLength=50, searching=FALSE, info=FALSE,
-                  order=list(list(3,"desc")),
-                  columnDefs=list(list(className="dt-center", targets=c(0,3,4,5))))
+  options = list(pageLength=50, searching=FALSE, info=FALSE,
+                 order=list(list(3,"desc")),
+                 columnDefs=list(list(className="dt-center", targets=c(0,3,4,5))))
   )
   
-  # Team leaderboard
   output$lb_team_ui <- renderUI({
     tl <- compute_team_leaderboard(r_votes(), r_results(), r_teams())
     if (nrow(tl) == 0)
-      return(div(style = "padding:2rem; text-align:center; color:#7a8f7c;",
+      return(div(style = "padding:2rem; text-align:center; color:#6b6e6b;",
                  "No teams yet. Create or join a team on the My Teams tab!"))
     tagList(
       h4(class = "lb-section-title", "\U0001F6E1 Team Rankings"),
@@ -432,42 +414,36 @@ server <- function(input, output, session) {
   output$lb_team_table <- DT::renderDataTable({
     tl <- compute_team_leaderboard(r_votes(), r_results(), r_teams())
     if (nrow(tl) == 0) return(data.frame())
-    # highlight user's teams
-    teams_df   <- r_teams()
-    my_teams   <- if (!is.null(rv$player) && nrow(teams_df) > 0)
+    teams_df <- r_teams()
+    my_teams <- if (!is.null(rv$player) && nrow(teams_df) > 0)
       teams_df$team_name[teams_df$username == rv$player]
     else character(0)
     tl %>%
       mutate(
-        `#`    = dplyr::case_when(Rank==1~"\U0001F947", Rank==2~"\U0001F948",
-                                  Rank==3~"\U0001F949", TRUE~as.character(Rank)),
-        Team   = ifelse(Team %in% my_teams, paste0(Team, " \u2605"), Team),
+        `#`      = dplyr::case_when(Rank==1~"\U0001F947", Rank==2~"\U0001F948",
+                                    Rank==3~"\U0001F949", TRUE~as.character(Rank)),
+        Team     = ifelse(Team %in% my_teams, paste0(Team, " \u2605"), Team),
         `Avg Pts` = Avg_Points
       ) %>%
       select(`#`, Team, Members, `Total Pts`=Total_Points, `Avg Pts`)
   },
   rownames = FALSE, class = "table table-sm", elementId = "lb-team-table",
-  options  = list(pageLength=30, searching=FALSE, info=FALSE,
-                  order=list(list(3,"desc")),
-                  columnDefs=list(list(className="dt-center", targets=c(0,2,3,4))))
+  options = list(pageLength=30, searching=FALSE, info=FALSE,
+                 order=list(list(3,"desc")),
+                 columnDefs=list(list(className="dt-center", targets=c(0,2,3,4))))
   )
   
   # ── Team management ──────────────────────────────────────────────────────────
-  
-  # Render current user's teams + join/create UI
   output$my_teams_ui <- renderUI({
     req(rv$player)
-    teams_df  <- r_teams()
-    my_memberships <- if (nrow(teams_df) > 0)
-      teams_df[teams_df$username == rv$player, ]
+    teams_df <- r_teams()
+    my_memberships <- if (nrow(teams_df) > 0) teams_df[teams_df$username == rv$player, ]
     else empty_teams()
     n_teams <- nrow(my_memberships)
     
-    # Cards for each current team
     team_cards <- if (n_teams > 0) {
       lapply(seq_len(n_teams), function(i) {
-        tn  <- my_memberships$team_name[i]
-        # Count members
+        tn <- my_memberships$team_name[i]
         n_members <- sum(tolower(teams_df$team_name) == tolower(tn))
         div(class = "team-card",
             div(class = "team-card-name", tn),
@@ -480,81 +456,72 @@ server <- function(input, output, session) {
         )
       })
     } else {
-      list(div(style="color:#7a8f7c; font-size:0.85rem; padding:0.5rem 0;",
+      list(div(style="color:#6b6e6b; font-size:0.85rem; padding:0.5rem 0;",
                "You are not in any teams yet."))
     }
     
     can_join_more <- n_teams < MAX_TEAMS_PER_USER
     
     tagList(
-      # Current teams
       div(class = "teams-section-title", paste0("Your Teams (", n_teams, "/", MAX_TEAMS_PER_USER, ")")),
       div(class = "team-cards-row", tagList(team_cards)),
-      
-      # Join / Create (disabled if at limit)
       if (can_join_more) {
         tagList(
-          hr(style="border-color:rgba(201,168,76,0.15); margin:1.25rem 0;"),
+          hr(style="border-color:var(--wc-border); margin:1.25rem 0;"),
           div(class = "teams-section-title", "Join or Create a Team"),
           layout_columns(
             col_widths = c(5, 2, 5),
             div(
               div(class = "teams-input-label", "Join an existing team"),
               div(style="display:flex; gap:0.5rem;",
-                  textInput("join_team_name", NULL, placeholder="Team name…", width="100%"),
-                  actionButton("join_team_btn", "Join", class="btn btn-wc-gold")
+                  textInput("join_team_name", NULL, placeholder="Team name\u2026", width="100%"),
+                  actionButton("join_team_btn", "Join", class="btn btn-wc-blue")
               ),
               uiOutput("join_team_msg")
             ),
             div(style="display:flex; align-items:center; justify-content:center;
-                       padding-top:1.4rem; color:#7a8f7c; font-size:0.85rem;", "or"),
+                       padding-top:1.4rem; color:#6b6e6b; font-size:0.85rem;", "or"),
             div(
               div(class = "teams-input-label", "Create a new team"),
               div(style="display:flex; gap:0.5rem;",
-                  textInput("create_team_name", NULL, placeholder="New team name…", width="100%"),
-                  actionButton("create_team_btn", "Create", class="btn btn-wc-green")
+                  textInput("create_team_name", NULL, placeholder="New team name\u2026", width="100%"),
+                  actionButton("create_team_btn", "Create", class="btn btn-wc-blue")
               ),
               uiOutput("create_team_msg")
             )
           )
         )
       } else {
-        div(style="color:#7a8f7c; font-size:0.82rem; margin-top:1rem;",
+        div(style="color:#6b6e6b; font-size:0.82rem; margin-top:1rem;",
             paste0("You've reached the maximum of ", MAX_TEAMS_PER_USER,
                    " teams. Leave one to join or create another."))
       }
     )
   })
   
-  # Also render all-teams browser
   output$all_teams_ui <- renderUI({
     teams_df <- r_teams()
     if (nrow(teams_df) == 0)
-      return(div(style="color:#7a8f7c; font-size:0.85rem; padding:0.5rem 0;",
+      return(div(style="color:#6b6e6b; font-size:0.85rem; padding:0.5rem 0;",
                  "No teams have been created yet. Be the first!"))
-    
     summary <- teams_df %>%
       group_by(team_name) %>%
       summarise(Members = n(), .groups="drop") %>%
       arrange(team_name)
-    
     div(
       div(class="teams-section-title", paste0("All Teams (", nrow(summary), ")")),
       div(class="all-teams-grid",
           lapply(seq_len(nrow(summary)), function(i) {
-            tn <- summary$team_name[i]
-            nm <- summary$Members[i]
+            tn <- summary$team_name[i]; nm <- summary$Members[i]
             div(class="all-team-chip",
                 span(class="all-team-name", tn),
-                span(class="all-team-count",
-                     paste0(nm, " member", if(nm!=1)"s" else ""))
+                span(class="all-team-count", paste0(nm, " member", if(nm!=1)"s" else ""))
             )
           })
       )
     )
   })
   
-  # Join team
   output$join_team_msg <- renderUI(NULL)
   observeEvent(input$join_team_btn, {
     req(rv$player, input$join_team_name)
@@ -568,7 +535,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # Create team
   output$create_team_msg <- renderUI(NULL)
   observeEvent(input$create_team_btn, {
     req(rv$player, input$create_team_name)
@@ -582,20 +548,18 @@ server <- function(input, output, session) {
     }
   })
   
-  # Teams tab: combines my teams + all teams browser
   output$teams_tab_ui <- renderUI({
     if (is.null(rv$player)) {
-      return(div(style="padding:2rem; text-align:center; color:#7a8f7c;",
+      return(div(style="padding:2rem; text-align:center; color:#6b6e6b;",
                  "Please log in to manage your teams."))
     }
     tagList(
       uiOutput("my_teams_ui"),
-      hr(style="border-color:rgba(201,168,76,0.1); margin:1.5rem 0;"),
+      hr(style="border-color:var(--wc-border); margin:1.5rem 0;"),
       uiOutput("all_teams_ui")
     )
   })
   
-  # Leave team — triggered by JS setInputValue from leave button
   observeEvent(input$leave_team_name, {
     req(rv$player, input$leave_team_name)
     result <- leave_team(input$leave_team_name, rv$player)
@@ -612,8 +576,7 @@ server <- function(input, output, session) {
       rv$admin_ok <- TRUE
     } else {
       output$admin_pw_error <- renderUI(
-        p(style = "color:#cc3333; margin-top:0.5rem; font-size:0.85rem;",
-          "Incorrect password."))
+        p(style = "color:#cc3333; margin-top:0.5rem; font-size:0.85rem;", "Incorrect password."))
     }
   })
   
@@ -657,8 +620,12 @@ server <- function(input, output, session) {
     req(rv$admin_ok); r_results()
   }, rownames=FALSE, class="table table-sm", options=list(pageLength=30, scrollX=TRUE))
   
+  # Download votes as CSV (no local file dependency)
   output$admin_dl_btn <- downloadHandler(
-    filename = function() paste0("wc2026_backup_", format(Sys.time(),"%Y%m%d_%H%M"), ".xlsx"),
-    content  = function(file) file.copy(DATA_PATH, file)
+    filename = function() paste0("wc2026_votes_", format(Sys.time(), "%Y%m%d_%H%M"), ".csv"),
+    content  = function(file) {
+      votes <- read_votes()
+      write.csv(votes, file, row.names = FALSE)
+    }
   )
 }

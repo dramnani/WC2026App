@@ -9,11 +9,12 @@ if (!requireNamespace("rsconnect", quietly = TRUE)) {
 library(rsconnect)
 
 # since app is within the "app" subfolder
-app_dir <- "app"
+app_dir <- "."
 
 
 # Generate manifest.json
 rsconnect::writeManifest(
-  appDir = app_dir,
-  force = TRUE
+  appDir      = app_dir,
+  appFiles    = c("app.R", "global.R", "ui.R", "server.R"),
+  appPrimaryDoc = "app.R"
 )
