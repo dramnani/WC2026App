@@ -17,5 +17,3 @@ rsconnect::writeManifest(
   appDir = app_dir,
   force = TRUE
 )
-
-cat("Manifest successfully created in:", normalizePath(app_dir), "\n")
