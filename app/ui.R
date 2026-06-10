@@ -190,6 +190,38 @@ ui <- page_navbar(
       }
       .team-vote-btn .flag { font-size: 1.1rem; line-height: 1; }
       .team-vote-btn .tname { font-size: 0.72rem; }
+      
+      /* Draw button */
+      .draw-btn {
+        flex: 0 0 auto !important;
+        width: 3.2rem !important;
+        min-width: 3.2rem !important;
+        background: transparent !important;
+        border: 1px solid rgba(212,175,55,0.35) !important;
+        color: #c9a84c !important;
+      }
+      .draw-btn:hover {
+        background: rgba(212,175,55,0.12) !important;
+        border-color: #D4AF37 !important;
+        color: #D4AF37 !important;
+      }
+      .draw-btn.selected {
+        background: rgba(212,175,55,0.18) !important;
+        border-color: #D4AF37 !important;
+        color: #D4AF37 !important;
+        font-weight: 600 !important;
+      }
+      .draw-btn.result-correct {
+        background: rgba(25,135,84,0.25) !important;
+        border-color: #198754 !important;
+        color: #6fdb9a !important;
+      }
+      .draw-btn.result-wrong {
+        background: rgba(180,50,50,0.15) !important;
+        border-color: rgba(180,50,50,0.4) !important;
+        color: #d07070 !important;
+      }
+      .draw-icon { font-size: 1rem; line-height: 1; font-weight: 700; }
 
       .vs-sep {
         font-size: 0.65rem; font-weight: 700;

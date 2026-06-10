@@ -137,22 +137,25 @@ server <- function(input, output, session) {
             parts     <- strsplit(rest, "_", fixed = TRUE)[[1]]
             matches_df <- isolate(r_matches())
             known_ids  <- as.character(matches_df$match_id)
-            match_id   <- NA_character_
-            safe_team  <- NA_character_
+            match_id  <- NA_character_
+            pick_val  <- NA_character_
             for (n in seq(length(parts), 1)) {
               candidate <- paste(parts[1:n], collapse = "_")
               if (candidate %in% known_ids) {
-                match_id  <- candidate
-                safe_team <- paste(parts[(n+1):length(parts)], collapse = "_")
+                match_id <- candidate
+                suffix   <- paste(parts[(n+1):length(parts)], collapse = "_")
+                pick_val <- if (suffix == "draw") "draw"
+                else gsub("_SPC_", " ", gsub("_DOT_", ".", suffix))
                 break
               }
             }
-            if (is.na(match_id) || is.na(safe_team) || safe_team == "") return()
-            team <- gsub("_SPC_", " ", gsub("_DOT_", ".", safe_team))
+            if (is.na(match_id) || is.na(pick_val) || pick_val == "") return()
+            team <- pick_val
             tryCatch({
               save_vote(rv$player, match_id, team)
               rv$data_version <- rv$data_version + 1
-              showNotification(paste0("\u2713 Picked ", flag(team), " ", team),
+              label <- if (team == "draw") "\u00bd Draw" else paste0(flag(team), " ", team)
+              showNotification(paste0("\u2713 Picked ", label),
                                type = "message", duration = 2)
             }, error = function(e) {
               showNotification(paste("Save error:", e$message), type = "error")
@@ -165,7 +168,7 @@ server <- function(input, output, session) {
   
   # ── Match card renderer ───────────────────────────────────────────────────────
   make_match_card <- function(match_id, team1, team2, date_str,
-                              venue_str = NULL, label = NULL) {
+                              venue_str = NULL, label = NULL, is_group = FALSE) {
     match_id  <- as.character(match_id[[1]])
     team1     <- as.character(team1[[1]])
     team2     <- as.character(team2[[1]])
@@ -185,58 +188,89 @@ server <- function(input, output, session) {
     winner     <- if (has_result) as.character(result_row$winner[1]) else NULL
     score_str  <- if (has_result) as.character(result_row$score[1])  else NULL
     
-    mv <- votes_now[votes_now$match_id == match_id, ]
-    n1 <- sum(mv$pick == team1, na.rm = TRUE)
-    n2 <- sum(mv$pick == team2, na.rm = TRUE)
+    mv    <- votes_now[votes_now$match_id == match_id, ]
+    n1    <- sum(mv$pick == team1,  na.rm = TRUE)
+    n2    <- sum(mv$pick == team2,  na.rm = TRUE)
+    ndraw <- sum(mv$pick == "draw", na.rm = TRUE)
     
-    safe <- function(t) gsub("\\.", "_DOT_", gsub(" ", "_SPC_", t))
-    id1  <- paste0("vote_", match_id, "_", safe(team1))
-    id2  <- paste0("vote_", match_id, "_", safe(team2))
+    safe    <- function(t) gsub("\\.", "_DOT_", gsub(" ", "_SPC_", t))
+    id1     <- paste0("vote_", match_id, "_", safe(team1))
+    id2     <- paste0("vote_", match_id, "_", safe(team2))
+    id_draw <- paste0("vote_", match_id, "_draw")
     
     cls_base <- "btn btn-sm team-vote-btn"
     cls1 <- cls_base; cls2 <- cls_base
+    cls_draw <- paste(cls_base, "draw-btn")
+    is_draw  <- isTRUE(winner == "draw")
+    
     if (!is.null(my_pick)) {
-      if (isTRUE(my_pick == team1)) cls1 <- paste(cls1, "selected")
-      if (isTRUE(my_pick == team2)) cls2 <- paste(cls2, "selected")
+      if (isTRUE(my_pick == team1))  cls1     <- paste(cls1,     "selected")
+      if (isTRUE(my_pick == team2))  cls2     <- paste(cls2,     "selected")
+      if (isTRUE(my_pick == "draw")) cls_draw <- paste(cls_draw, "selected")
       if (has_result) {
         if (isTRUE(my_pick == team1))
           cls1 <- paste(cls1, if (isTRUE(winner == team1)) "result-correct" else "result-wrong")
         if (isTRUE(my_pick == team2))
           cls2 <- paste(cls2, if (isTRUE(winner == team2)) "result-correct" else "result-wrong")
+        if (isTRUE(my_pick == "draw"))
+          cls_draw <- paste(cls_draw, if (is_draw) "result-correct" else "result-wrong")
       }
     }
     
     locked   <- is.null(rv$player) || has_result || team1 == "TBD" || team2 == "TBD"
-    make_btn <- function(id, team, cls) {
-      lbl <- tagList(span(class = "flag", flag(team)), br(), span(class = "tname", team))
-      if (locked) div(class = cls, style = "cursor:default; pointer-events:none;", lbl)
-      else        actionButton(id, label = lbl, class = cls)
+    make_btn <- function(id, lbl_tag, cls) {
+      if (locked) div(class = cls, style = "cursor:default; pointer-events:none;", lbl_tag)
+      else        actionButton(id, label = lbl_tag, class = cls)
     }
     
+    team_btn1 <- make_btn(id1,
+                          tagList(span(class = "flag", flag(team1)), br(), span(class = "tname", team1)), cls1)
+    team_btn2 <- make_btn(id2,
+                          tagList(span(class = "flag", flag(team2)), br(), span(class = "tname", team2)), cls2)
+    draw_btn  <- if (is_group)
+      make_btn(id_draw,
+               tagList(span(class = "draw-icon", "\u00bd"), br(), span(class = "tname", "Draw")), cls_draw)
+    else NULL
+    
     footer_items <- list()
-    if (has_result)
+    if (has_result) {
+      result_label <- if (is_draw) paste0(score_str, "  \u00b7  Result: Draw")
+      else paste0(score_str, "  \u00b7  Winner: ", flag(winner), " ", winner)
       footer_items[[length(footer_items)+1]] <-
-      span(class = "result-score",
-           paste0(score_str, "  \u00b7  Winner: ", flag(winner), " ", winner))
-    if (!is.null(my_pick) && has_result) {
-      footer_items[[length(footer_items)+1]] <-
-        if (isTRUE(my_pick == winner)) span(class = "correct-badge ms-1", " \u2713 Correct!")
-      else span(class = "wrong-badge ms-1", paste0(" \u2717 You picked ", my_pick))
-    } else if (!is.null(my_pick) && !has_result) {
-      footer_items[[length(footer_items)+1]] <-
-        tags$small(style = "color:#2a7d29;",
-                   paste0("Your pick: ", flag(my_pick), " ", my_pick))
+        span(class = "result-score", result_label)
     }
+    if (!is.null(my_pick) && has_result) {
+      picked_correct <- (isTRUE(my_pick == winner)) ||
+        (isTRUE(my_pick == "draw") && is_draw)
+      footer_items[[length(footer_items)+1]] <-
+        if (picked_correct) span(class = "correct-badge ms-1", " \u2713 Correct!")
+      else {
+        pick_label <- if (my_pick == "draw") "Draw"
+        else paste0(flag(my_pick), " ", my_pick)
+        span(class = "wrong-badge ms-1", paste0(" \u2717 You picked ", pick_label))
+      }
+    } else if (!is.null(my_pick) && !has_result) {
+      pick_label <- if (my_pick == "draw") "\u00bd Draw"
+      else paste0(flag(my_pick), " ", my_pick)
+      footer_items[[length(footer_items)+1]] <-
+        tags$small(style = "color:#2a7d29;", paste0("Your pick: ", pick_label))
+    }
+    count_str <- if (is_group)
+      paste0(n1+n2+ndraw, " picks \u00b7 ", team1, ": ", n1, " / Draw: ", ndraw, " / ", team2, ": ", n2)
+    else
+      paste0(n1 + n2, " picks \u00b7 ", team1, ": ", n1, " / ", team2, ": ", n2)
     footer_items[[length(footer_items)+1]] <-
-      tags$small(style = "color:#6b6e6b; font-size:0.65rem;",
-                 paste0(n1 + n2, " picks \u00b7 ", team1, ": ", n1, " / ", team2, ": ", n2))
+      tags$small(style = "color:#6b6e6b; font-size:0.65rem;", count_str)
     
     div(class = "match-card",
         if (!is.null(label)) div(class = "bracket-match-label", label),
         div(class = "match-date-label",
             if (!is.null(venue_str)) paste0(date_str, "  \u00b7  ", venue_str) else date_str),
-        div(class = "match-teams-row",
-            make_btn(id1, team1, cls1), span(class = "vs-sep", "vs"), make_btn(id2, team2, cls2)),
+        if (is_group) {
+          div(class = "match-teams-row", team_btn1, draw_btn, team_btn2)
+        } else {
+          div(class = "match-teams-row", team_btn1, span(class = "vs-sep", "vs"), team_btn2)
+        },
         div(class = "match-footer", tagList(footer_items))
     )
   }
@@ -258,7 +292,7 @@ server <- function(input, output, session) {
       
       cards <- lapply(seq_len(nrow(gm)), function(i) {
         tryCatch(
-          make_match_card(gm$match_id[i], gm$team1[i], gm$team2[i], gm$date[i], gm$venue[i]),
+          make_match_card(gm$match_id[i], gm$team1[i], gm$team2[i], gm$date[i], gm$venue[i], is_group = TRUE),
           error = function(e) div(class = "match-card",
                                   style = "color:#6b6e6b; font-size:0.8rem;", paste("Error:", e$message))
         )
@@ -595,15 +629,18 @@ server <- function(input, output, session) {
     matches <- r_matches()
     m <- matches[matches$match_id == input$admin_match_sel, ]
     if (nrow(m) == 0) return()
-    teams <- c(as.character(m$team1[1]), as.character(m$team2[1]))
-    if (all(teams == "TBD")) teams <- c("Team 1", "Team 2")
-    updateSelectInput(session, "admin_winner_sel", choices = teams, selected = teams[1])
+    t1 <- as.character(m$team1[1]); t2 <- as.character(m$team2[1])
+    if (t1 == "TBD") t1 <- "Team 1"; if (t2 == "TBD") t2 <- "Team 2"
+    is_grp  <- grepl("^Group ", as.character(m$round[1]))
+    choices <- if (is_grp) c(t1, "Draw", t2) else c(t1, t2)
+    updateSelectInput(session, "admin_winner_sel", choices = choices, selected = choices[1])
   })
   
   observeEvent(input$admin_save_btn, {
     req(rv$admin_ok, input$admin_match_sel, input$admin_winner_sel)
+    winner_val <- if (input$admin_winner_sel == "Draw") "draw" else input$admin_winner_sel
     tryCatch({
-      save_result(input$admin_match_sel, input$admin_winner_sel,
+      save_result(input$admin_match_sel, winner_val,
                   ifelse(trimws(input$admin_score_inp)=="","N/A",trimws(input$admin_score_inp)))
       rv$data_version <- rv$data_version + 1
       showNotification(paste0("\u2713 Saved: ", input$admin_match_sel,
