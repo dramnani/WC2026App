@@ -591,6 +591,28 @@ ui <- page_navbar(
       Shiny.addCustomMessageHandler('hide_auth_modal', function(x) {
         document.getElementById('auth-modal-overlay').classList.remove('open');
       });
+
+      // ── Idle timeout: log out after 10 minutes of no activity ──────────────
+      var IDLE_MS = 10 * 60 * 1000;   // 10 minutes in milliseconds
+      var idleTimer = null;
+
+      function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(function() {
+          Shiny.setInputValue('idle_timeout', true, {priority: 'event'});
+        }, IDLE_MS);
+      }
+
+      // Reset on any user interaction
+      ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click']
+        .forEach(function(evt) {
+          document.addEventListener(evt, resetIdleTimer, true);
+        });
+
+      // Start the timer once Shiny is connected
+      $(document).on('shiny:connected', function() {
+        resetIdleTimer();
+      });
     ")),
     
     # Main tab content

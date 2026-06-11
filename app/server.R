@@ -100,6 +100,12 @@ server <- function(input, output, session) {
     session$sendCustomMessage("show_auth_modal", list())
   })
   
+  # ── Idle timeout ─────────────────────────────────────────────────────────────
+  observeEvent(input$idle_timeout, {
+    rv$player <- NULL
+    session$sendCustomMessage("show_auth_modal", list())
+  }, ignoreInit = TRUE)
+  
   # ── Player bar ───────────────────────────────────────────────────────────────
   output$player_bar_ui <- renderUI({
     req(rv$player)
