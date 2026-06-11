@@ -6,7 +6,8 @@ server <- function(input, output, session) {
   rv <- reactiveValues(
     player       = NULL,
     admin_ok     = FALSE,
-    data_version = 0
+    data_version = 0,
+    active_group = "A"
   )
   
   autoInvalidate <- reactiveTimer(30000)
@@ -99,6 +100,12 @@ server <- function(input, output, session) {
     session$sendCustomMessage("show_auth_modal", list())
   })
   
+  # ── Idle timeout ─────────────────────────────────────────────────────────────
+  observeEvent(input$idle_timeout, {
+    rv$player <- NULL
+    session$sendCustomMessage("show_auth_modal", list())
+  }, ignoreInit = TRUE)
+  
   # ── Player bar ───────────────────────────────────────────────────────────────
   output$player_bar_ui <- renderUI({
     req(rv$player)
@@ -165,6 +172,11 @@ server <- function(input, output, session) {
       }
     }
   })
+  
+  # Persist the active group tab so re-renders restore the correct panel
+  observeEvent(input$active_group, {
+    rv$active_group <- input$active_group
+  }, ignoreNULL = TRUE, ignoreInit = TRUE)
   
   # ── Match card renderer ───────────────────────────────────────────────────────
   make_match_card <- function(match_id, team1, team2, date_str,
@@ -298,7 +310,8 @@ server <- function(input, output, session) {
         )
       })
       
-      div(id = paste0("gp_", g), style = if (g == "A") "display:block;" else "display:none;",
+      div(id = paste0("gp_", g),
+          style = if (g == rv$active_group) "display:block;" else "display:none;",
           div(class = "group-header-bar",
               span(class = "group-letter", paste("Group", g)),
               span(class = "group-teams-mini", team_labels)),
@@ -312,12 +325,13 @@ server <- function(input, output, session) {
       lapply(groups, function(g) {
         tags$button(
           paste("Group", g), id = paste0("gnavbtn_", g),
-          class = paste("nav-link", if (g == "A") "active" else ""),
+          class = paste("nav-link", if (g == rv$active_group) "active" else ""),
           onclick = paste0(
             'document.querySelectorAll("[id^=gp_]").forEach(e=>e.style.display="none");',
             'document.getElementById("gp_', g, '").style.display="block";',
             'document.querySelectorAll("[id^=gnavbtn_]").forEach(e=>e.classList.remove("active"));',
-            'this.classList.add("active");'
+            'this.classList.add("active");',
+            'Shiny.setInputValue("active_group","', g, '",{priority:"event"});'
           )
         )
       })
