@@ -117,6 +117,7 @@ read_votes <- function() {
     arrange(desc(timestamp)) %>%
     distinct(player, match_id, .keep_all = TRUE)
 }
+
 read_results <- function() .read_sheet_safe("results", empty_results)
 read_users   <- function() .read_sheet_safe("users",   empty_users)
 read_teams   <- function() .read_sheet_safe("teams",   empty_teams)
@@ -126,6 +127,12 @@ read_teams   <- function() .read_sheet_safe("teams",   empty_teams)
 # regardless of how many users are polling simultaneously.
 .cache    <- new.env(parent = emptyenv())
 CACHE_TTL <- 20   # seconds
+
+# ── Read cache (Option 3) ─────────────────────────────────────────────────────
+# Shared across all sessions in the R process. Limits Google Sheets API reads
+# to once per CACHE_TTL seconds regardless of how many users are polling.
+.cache    <- new.env(parent = emptyenv())
+CACHE_TTL <- 20   # seconds — increase if API quota warnings appear
 
 .cached_read <- function(key, read_fn) {
   now      <- Sys.time()
@@ -143,6 +150,7 @@ read_votes_cached   <- function() .cached_read("votes",   read_votes)
 read_results_cached <- function() .cached_read("results", read_results)
 read_teams_cached   <- function() .cached_read("teams",   read_teams)
 
+# Call after any write so the next poll fetches fresh data immediately
 invalidate_cache <- function(key) {
   .cache[[paste0(key, "_time")]] <- as.POSIXct(0, origin = "1970-01-01")
 }
@@ -181,7 +189,6 @@ save_vote <- function(player, match_id, pick) {
     stop("Failed to save vote: ", e$message)
   })
 }
-
 save_result <- function(match_id, winner, score) {
   results <- read_results()
   if (nrow(results) == 0) results <- empty_results()
@@ -243,6 +250,11 @@ change_password <- function(username, old_password, new_password) {
   result <- verify_login(username, old_password)
   if (!result$ok)
     return(list(ok=FALSE, message="Current password is incorrect."))
+
+  result <- verify_login(username, old_password)
+  if (!result$ok)
+    return(list(ok=FALSE, message="Current password is incorrect."))
+  
   users <- read_users()
   users$pw_hash[tolower(users$username) == tolower(username)] <- hash_password(new_password)
   tryCatch({

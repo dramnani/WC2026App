@@ -100,6 +100,36 @@ server <- function(input, output, session) {
     session$sendCustomMessage("show_auth_modal", list())
   })
   
+  # ── Change password ───────────────────────────────────────────────────────
+  observeEvent(input$chpw_open_btn, {
+    req(rv$player)
+    updateTextInput(session, "chpw_old",  value = "")
+    updateTextInput(session, "chpw_new",  value = "")
+    updateTextInput(session, "chpw_new2", value = "")
+    output$chpw_msg_ui <- renderUI(NULL)
+    session$sendCustomMessage("show_chpw_modal", list())
+  })
+  
+  output$chpw_msg_ui <- renderUI(NULL)
+  
+  observeEvent(input$chpw_save_btn, {
+    req(rv$player)
+    if (input$chpw_new != input$chpw_new2) {
+      output$chpw_msg_ui <- renderUI(
+        div(class = "auth-error", "New passwords do not match."))
+      return()
+    }
+    result <- change_password(rv$player, input$chpw_old, input$chpw_new)
+    if (!result$ok) {
+      output$chpw_msg_ui <- renderUI(div(class = "auth-error",  result$message))
+    } else {
+      output$chpw_msg_ui <- renderUI(div(class = "auth-success", result$message))
+      rv$data_version <- rv$data_version + 1
+      Sys.sleep(1)
+      session$sendCustomMessage("hide_chpw_modal", list())
+    }
+  })
+  
   # ── Idle timeout ─────────────────────────────────────────────────────────────
   observeEvent(input$idle_timeout, {
     rv$player <- NULL
