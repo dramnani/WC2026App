@@ -441,6 +441,22 @@ ui <- page_navbar(
       }
       .auth-error   { color: #cc3333; font-size: 0.82rem; margin: 0.5rem 0; min-height: 1.1rem; }
       .auth-success { color: var(--wc-green-dark); font-size: 0.82rem; margin: 0.5rem 0; }
+      /* Change password modal */
+      .chpw-modal-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.82); z-index: 9999;
+        align-items: center; justify-content: center;
+      }
+      .chpw-modal-overlay.open { display: flex; }
+      .chpw-modal {
+        background: #474A4A; border: 1px solid rgba(201,168,76,0.35);
+        border-radius: 12px; padding: 2rem; width: min(380px, 92vw);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+      }
+      .chpw-modal h3 {
+        font-family: 'Trebuchet MS', sans-serif; font-size: 1.6rem;
+        color: #2A398D; letter-spacing: 0.06em; margin-bottom: 1.25rem;
+      }
       .auth-footer  { font-size: 0.75rem; color: var(--wc-muted); margin-top: 1rem; text-align: center; }
 
       /* ── Teams ─────────────────────────────────────────────────────────── */
@@ -578,6 +594,33 @@ ui <- page_navbar(
               "\U0001F512 Your picks are saved securely and persist across sessions.")
       )
     ),
+    # ── Change password modal ─────────────────────────────────────────────────
+    div(
+      id = "chpw-modal-overlay", class = "chpw-modal-overlay",
+      div(class = "chpw-modal",
+        h3("Change Password"),
+        div(class = "auth-field",
+          tags$label("Current password"),
+          passwordInput("chpw_old", NULL, placeholder="Current password", width="100%")
+        ),
+        div(class = "auth-field",
+          tags$label("New password"),
+          passwordInput("chpw_new", NULL, placeholder="At least 4 characters", width="100%")
+        ),
+        div(class = "auth-field",
+          tags$label("Confirm new password"),
+          passwordInput("chpw_new2", NULL, placeholder="Repeat new password", width="100%")
+        ),
+        uiOutput("chpw_msg_ui"),
+        div(style="display:flex; gap:0.6rem; margin-top:0.5rem;",
+          actionButton("chpw_save_btn", "Update Password",
+                       class="btn btn-wc-green", style="flex:1;"),
+          tags$button("Cancel", class="btn btn-wc-gold",
+                      style="flex:1;",
+                      onclick="document.getElementById('chpw-modal-overlay').classList.remove('open');")
+        )
+      )
+    ),
     tags$script(HTML("
       function switchAuthTab(tab) {
         document.getElementById('auth-form-login').style.display    = tab==='login'    ? '' : 'none';
@@ -585,11 +628,11 @@ ui <- page_navbar(
         document.getElementById('auth-tab-login').classList.toggle('active',    tab==='login');
         document.getElementById('auth-tab-register').classList.toggle('active', tab==='register');
       }
-      Shiny.addCustomMessageHandler('show_auth_modal', function(x) {
-        document.getElementById('auth-modal-overlay').classList.add('open');
+      Shiny.addCustomMessageHandler('show_chpw_modal', function(x) {
+        document.getElementById('chpw-modal-overlay').classList.add('open');
       });
-      Shiny.addCustomMessageHandler('hide_auth_modal', function(x) {
-        document.getElementById('auth-modal-overlay').classList.remove('open');
+      Shiny.addCustomMessageHandler('hide_chpw_modal', function(x) {
+        document.getElementById('chpw-modal-overlay').classList.remove('open');
       });
 
       // ── Idle timeout: log out after 10 minutes of no activity ──────────────

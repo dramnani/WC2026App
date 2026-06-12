@@ -110,10 +110,44 @@ empty_teams <- function()
 }
 
 read_matches <- function() .read_sheet_safe("matches", make_empty_matches)
-read_votes   <- function() .read_sheet_safe("votes",   empty_votes)
+read_votes <- function() {
+  df <- .read_sheet_safe("votes", empty_votes)
+  if (nrow(df) == 0) return(df)
+  df %>%
+    arrange(desc(timestamp)) %>%
+    distinct(player, match_id, .keep_all = TRUE)
+}
+
 read_results <- function() .read_sheet_safe("results", empty_results)
 read_users   <- function() .read_sheet_safe("users",   empty_users)
 read_teams   <- function() .read_sheet_safe("teams",   empty_teams)
+
+# ── Read cache (Option 3) ─────────────────────────────────────────────────────
+# Shared across all sessions in the R process. Limits Google Sheets API reads
+# to once per CACHE_TTL seconds regardless of how many users are polling.
+.cache    <- new.env(parent = emptyenv())
+CACHE_TTL <- 20   # seconds — increase if API quota warnings appear
+
+.cached_read <- function(key, read_fn) {
+  now      <- Sys.time()
+  last     <- .cache[[paste0(key, "_time")]]
+  is_fresh <- !is.null(last) &&
+    as.numeric(difftime(now, last, units = "secs")) < CACHE_TTL
+  if (is_fresh) return(.cache[[key]])
+  fresh                          <- read_fn()
+  .cache[[key]]                  <- fresh
+  .cache[[paste0(key, "_time")]] <- now
+  fresh
+}
+
+read_votes_cached   <- function() .cached_read("votes",   read_votes)
+read_results_cached <- function() .cached_read("results", read_results)
+read_teams_cached   <- function() .cached_read("teams",   read_teams)
+
+# Call after any write so the next poll fetches fresh data immediately
+invalidate_cache <- function(key) {
+  .cache[[paste0(key, "_time")]] <- as.POSIXct(0, origin = "1970-01-01")
+}
 
 # ── Generic write helper ──────────────────────────────────────────────────────
 # sheet_write() replaces the sheet contents atomically.
@@ -130,21 +164,25 @@ read_teams   <- function() .read_sheet_safe("teams",   empty_teams)
 
 # ── Write helpers ─────────────────────────────────────────────────────────────
 save_vote <- function(player, match_id, pick) {
-  votes <- read_votes()
-  if (nrow(votes) == 0) votes <- empty_votes()
-  # Replace any existing pick for this player/match
-  votes <- votes[!(votes$player == player & votes$match_id == match_id), ]
-  votes <- rbind(votes, data.frame(
-    vote_id   = paste0(player, "_", match_id, "_", format(Sys.time(), "%Y%m%d%H%M%S")),
-    player    = player,
-    match_id  = match_id,
-    pick      = pick,
-    timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-    stringsAsFactors = FALSE
-  ))
-  .write_sheet_safe(votes, "votes")
+  tryCatch({
+    googlesheets4::sheet_append(
+      ss   = SHEET_ID,
+      data = data.frame(
+        vote_id   = paste0(player, "_", match_id, "_", format(Sys.time(), "%Y%m%d%H%M%S")),
+        player    = player,
+        match_id  = match_id,
+        pick      = pick,
+        timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+        stringsAsFactors = FALSE
+      ),
+      sheet = "votes"
+    )
+    invalidate_cache("votes")
+    invisible(TRUE)
+  }, error = function(e) {
+    stop("Failed to save vote: ", e$message)
+  })
 }
-
 save_result <- function(match_id, winner, score) {
   results <- read_results()
   if (nrow(results) == 0) results <- empty_results()
@@ -168,14 +206,18 @@ register_user <- function(username, password) {
   if (nrow(users) > 0 && any(tolower(users$username) == tolower(username)))
     return(list(ok=FALSE, message="That username is already taken."))
   
-  users <- rbind(users, data.frame(
-    username = username,
-    pw_hash  = hash_password(password),
-    created  = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-    stringsAsFactors = FALSE
-  ))
   tryCatch({
-    .write_sheet_safe(users, "users")
+    googlesheets4::sheet_append(
+      ss   = SHEET_ID,
+      data = data.frame(
+        username = username,
+        pw_hash  = hash_password(password),
+        created  = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+        stringsAsFactors = FALSE
+      ),
+      sheet = "users"
+    )
+    invalidate_cache("users")
     list(ok=TRUE, message=paste0("Account created! Welcome, ", username, "."))
   }, error = function(e) {
     list(ok=FALSE, message=paste0("Registration failed: ", e$message))
@@ -193,6 +235,26 @@ verify_login <- function(username, password) {
     return(list(ok=FALSE, message="Incorrect password."))
   list(ok=TRUE, message=paste0("Welcome back, ", row$username[1], "!"),
        username = row$username[1])
+}
+
+# Change password — returns list(ok, message)
+change_password <- function(username, old_password, new_password) {
+  if (nchar(trimws(new_password)) < 4)
+    return(list(ok=FALSE, message="New password must be at least 4 characters."))
+  
+  result <- verify_login(username, old_password)
+  if (!result$ok)
+    return(list(ok=FALSE, message="Current password is incorrect."))
+  
+  users <- read_users()
+  users$pw_hash[tolower(users$username) == tolower(username)] <- hash_password(new_password)
+  tryCatch({
+    .write_sheet_safe(users, "users")
+    invalidate_cache("users")
+    list(ok=TRUE, message="Password updated successfully.")
+  }, error = function(e) {
+    list(ok=FALSE, message=paste0("Password update failed: ", e$message))
+  })
 }
 
 create_team <- function(team_name, username) {
