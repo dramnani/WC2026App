@@ -29,19 +29,19 @@ server <- function(input, output, session) {
   r_votes <- reactive({
     rv$data_version
     autoInvalidate()
-    read_votes()
+    read_votes_cached()
   })
   
   r_results <- reactive({
     rv$data_version
     autoInvalidate()
-    read_results()
+    read_results_cached()
   })
   
   r_teams <- reactive({
     rv$data_version
     autoInvalidate()
-    read_teams()
+    read_teams_cached()
   })
   
   my_picks <- reactive({
@@ -106,6 +106,36 @@ server <- function(input, output, session) {
     session$sendCustomMessage("show_auth_modal", list())
   }, ignoreInit = TRUE)
   
+  # ── Change password ───────────────────────────────────────────────────────
+  observeEvent(input$chpw_open_btn, {
+    req(rv$player)
+    updateTextInput(session, "chpw_old",  value = "")
+    updateTextInput(session, "chpw_new",  value = "")
+    updateTextInput(session, "chpw_new2", value = "")
+    output$chpw_msg_ui <- renderUI(NULL)
+    session$sendCustomMessage("show_chpw_modal", list())
+  })
+  
+  output$chpw_msg_ui <- renderUI(NULL)
+  
+  observeEvent(input$chpw_save_btn, {
+    req(rv$player)
+    if (input$chpw_new != input$chpw_new2) {
+      output$chpw_msg_ui <- renderUI(
+        div(class = "auth-error", "New passwords do not match."))
+      return()
+    }
+    result <- change_password(rv$player, input$chpw_old, input$chpw_new)
+    if (!result$ok) {
+      output$chpw_msg_ui <- renderUI(div(class = "auth-error",  result$message))
+    } else {
+      output$chpw_msg_ui <- renderUI(div(class = "auth-success", result$message))
+      rv$data_version <- rv$data_version + 1
+      Sys.sleep(1)
+      session$sendCustomMessage("hide_chpw_modal", list())
+    }
+  })
+  
   # ── Player bar ───────────────────────────────────────────────────────────────
   output$player_bar_ui <- renderUI({
     req(rv$player)
@@ -123,7 +153,10 @@ server <- function(input, output, session) {
                               paste0(npicks, " pick", if (npicks != 1) "s" else "", " made"))
           )
         ),
-        actionButton("logout_btn", "Log out", class = "btn btn-sm btn-wc-outline")
+        div(style = "display:flex; gap:0.5rem;",
+            actionButton("chpw_open_btn", "Change password", class = "btn btn-sm btn-wc-outline"),
+            actionButton("logout_btn",    "Log out",          class = "btn btn-sm btn-wc-outline")
+        )
     )
   })
   
