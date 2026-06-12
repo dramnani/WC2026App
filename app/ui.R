@@ -329,15 +329,20 @@ ui <- page_navbar(
       .tab-content { padding-top: 1.25rem; }
 
       /* ── Buttons ───────────────────────────────────────────────────────── */
-      .btn-wc-blue, .btn-wc-green {
-        background: var(--wc-blue) !important;
-        border-color: var(--wc-blue-dark) !important;
-        color: #FFFFFF !important;
-        font-weight: 700;
-      }
-      .btn-wc-blue:hover, .btn-wc-green:hover {
-        background: var(--wc-blue-dark) !important;
-      }
+      .btn-wc-blue {
+          background: var(--wc-blue) !important;
+          border-color: var(--wc-blue-dark) !important;
+          color: #FFFFFF !important;
+          font-weight: 700;
+        }
+        .btn-wc-blue:hover { background: var(--wc-blue-dark) !important; }
+        .btn-wc-green {
+          background: var(--wc-green) !important;
+          border-color: var(--wc-green-dark) !important;
+          color: #FFFFFF !important;
+          font-weight: 700;
+        }
+        .btn-wc-green:hover { background: var(--wc-green-dark) !important; }
       .btn-wc-outline {
         background: transparent !important;
         border: 1px solid var(--wc-blue) !important;
@@ -656,58 +661,13 @@ ui <- page_navbar(
       $(document).on('shiny:connected', function() {
         resetIdleTimer();
       });
-      ")),
-    tags$style(HTML("
-      .chpw-modal-overlay {
-        display: none; position: fixed; inset: 0;
-        background: rgba(0,0,0,0.82); z-index: 9999;
-        align-items: center; justify-content: center;
-      }
-      .chpw-modal-overlay.open { display: flex; }
-      .chpw-modal {
-        background: #474A4A; border: 1px solid rgba(201,168,76,0.35);
-        border-radius: 12px; padding: 2rem; width: min(380px, 92vw);
-        box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-      }
-      .chpw-modal h3 {
-        font-family: 'Trebuchet MS', sans-serif; font-size: 1.6rem;
-        color: #2A398D; letter-spacing: 0.06em; margin-bottom: 1.25rem;
-      }
-    ")),
-    # ── Change password modal ─────────────────────────────────────────────────
-    div(
-      id = "chpw-modal-overlay", class = "chpw-modal-overlay",
-      div(class = "chpw-modal",
-          h3("Change Password"),
-          div(class = "auth-field",
-              tags$label("Current password"),
-              passwordInput("chpw_old",  NULL, placeholder = "Current password",   width = "100%")
-          ),
-          div(class = "auth-field",
-              tags$label("New password"),
-              passwordInput("chpw_new",  NULL, placeholder = "At least 4 characters", width = "100%")
-          ),
-          div(class = "auth-field",
-              tags$label("Confirm new password"),
-              passwordInput("chpw_new2", NULL, placeholder = "Repeat new password",  width = "100%")
-          ),
-          uiOutput("chpw_msg_ui"),
-          div(style = "display:flex; gap:0.6rem; margin-top:0.5rem;",
-              actionButton("chpw_save_btn", "Update Password",
-                           class = "btn btn-wc-green", style = "flex:1;"),
-              tags$button("Cancel", class = "btn btn-wc-gold", style = "flex:1;",
-                          onclick = "document.getElementById('chpw-modal-overlay').classList.remove('open');")
-          )
-      )
-    ),
-    tags$script(HTML("
-      Shiny.addCustomMessageHandler('show_chpw_modal', function(x) {
-        document.getElementById('chpw-modal-overlay').classList.add('open');
+      Shiny.addCustomMessageHandler('show_auth_modal', function(x) {
+        document.getElementById('auth-modal-overlay').classList.add('open');
       });
-      Shiny.addCustomMessageHandler('hide_chpw_modal', function(x) {
-        document.getElementById('chpw-modal-overlay').classList.remove('open');
+      Shiny.addCustomMessageHandler('hide_auth_modal', function(x) {
+        document.getElementById('auth-modal-overlay').classList.remove('open');
       });
-    ")),
+                     ")),
     
     # Main tab content
     div(

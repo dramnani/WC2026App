@@ -122,11 +122,6 @@ read_results <- function() .read_sheet_safe("results", empty_results)
 read_users   <- function() .read_sheet_safe("users",   empty_users)
 read_teams   <- function() .read_sheet_safe("teams",   empty_teams)
 
-# ── Read cache ────────────────────────────────────────────────────────────────
-# Shared across all sessions. Limits API reads to once per CACHE_TTL seconds
-# regardless of how many users are polling simultaneously.
-.cache    <- new.env(parent = emptyenv())
-CACHE_TTL <- 20   # seconds
 
 # ── Read cache (Option 3) ─────────────────────────────────────────────────────
 # Shared across all sessions in the R process. Limits Google Sheets API reads
@@ -251,10 +246,6 @@ change_password <- function(username, old_password, new_password) {
   if (!result$ok)
     return(list(ok=FALSE, message="Current password is incorrect."))
 
-  result <- verify_login(username, old_password)
-  if (!result$ok)
-    return(list(ok=FALSE, message="Current password is incorrect."))
-  
   users <- read_users()
   users$pw_hash[tolower(users$username) == tolower(username)] <- hash_password(new_password)
   tryCatch({
