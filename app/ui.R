@@ -674,6 +674,8 @@ ui <- page_navbar(
       style = "max-width:1200px; margin:0 auto; padding:0 1rem;",
       tabsetPanel(
         id = "main_tabs",
+        tabPanel("\U0001F4C5 Upcoming",    value = "schedule", uiOutput("schedule_ui")),
+        tabPanel("\U0001F6E1 Team Performance",  value = "teamstats",uiOutput("teamstats_ui")),
         tabPanel("Group Stage",    value = "groups", uiOutput("groups_ui")),
         tabPanel("Round of 32",    value = "r32",    uiOutput("r32_ui")),
         tabPanel("Round of 16",    value = "r16",    uiOutput("r16_ui")),
