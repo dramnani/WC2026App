@@ -423,6 +423,232 @@ server <- function(input, output, session) {
     )
   })
   
+  # ── Schedule tab: today + next 4 days ────────────────────────────────────────
+  output$schedule_ui <- renderUI({
+    matches  <- r_matches()
+    results  <- r_results()
+    today    <- Sys.Date()
+    max_date <- today + 4
+    
+    if (nrow(matches) == 0)
+      return(div(style = "padding:2rem; color:var(--wc-muted);", "Loading match data\u2026"))
+    
+    # Filter to date window — dates stored as "YYYY-MM-DD" character strings
+    matches$date_parsed <- suppressWarnings(as.Date(matches$date))
+    window <- matches[!is.na(matches$date_parsed) &
+                        matches$date_parsed >= today &
+                        matches$date_parsed <= max_date, ]
+    
+    if (nrow(window) == 0)
+      return(div(
+        style = "padding:2rem; text-align:center; color:var(--wc-muted);",
+        p(style = "font-size:1rem;", "\u2705 No matches scheduled in the next 4 days."),
+        p(style = "font-size:0.85rem;",
+          paste0("Showing window: ", format(today, "%b %d"), " \u2013 ",
+                 format(max_date, "%b %d, %Y")))
+      ))
+    
+    # Group by date and render a section per day
+    dates_in_window <- sort(unique(window$date_parsed))
+    
+    day_sections <- lapply(dates_in_window, function(d) {
+      day_matches <- window[window$date_parsed == d, ]
+      day_label   <- format(d, "%A, %B %d, %Y")
+      is_today    <- (d == today)
+      
+      cards <- lapply(seq_len(nrow(day_matches)), function(i) {
+        m <- day_matches[i, ]
+        is_grp <- grepl("^Group ", as.character(m$round))
+        tryCatch(
+          make_match_card(m$match_id, m$team1, m$team2, m$date, m$venue,
+                          label = as.character(m$round), is_group = is_grp),
+          error = function(e) div(class = "match-card",
+                                  style = "color:var(--wc-muted); font-size:0.8rem;", e$message)
+        )
+      })
+      
+      div(
+        style = "margin-bottom:1.75rem;",
+        div(
+          style = paste0(
+            "display:flex; align-items:center; gap:0.75rem; ",
+            "margin-bottom:0.75rem; padding-bottom:0.4rem; ",
+            "border-bottom:2px solid var(--wc-green);"
+          ),
+          h5(style = "margin:0; font-family:'Bebas Neue',sans-serif; font-size:1.3rem; color:var(--wc-blue); letter-spacing:0.07em;",
+             day_label),
+          if (is_today)
+            span(style = paste0(
+              "font-size:0.7rem; font-weight:700; text-transform:uppercase; ",
+              "letter-spacing:0.1em; color:#FFFFFF; background:var(--wc-green); ",
+              "padding:0.15rem 0.55rem; border-radius:100px;"
+            ), "TODAY")
+        ),
+        div(
+          style = "display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:0.65rem;",
+          tagList(cards)
+        )
+      )
+    })
+    
+    tagList(
+      div(
+        style = "padding:1rem 0 0.5rem;",
+        p(style = "font-size:0.8rem; color:var(--wc-muted);",
+          paste0("\U0001F4C5 Showing matches from ",
+                 format(today, "%b %d"), " to ",
+                 format(max_date, "%b %d, %Y"),
+                 " \u00b7 Updates every 30 seconds"))
+      ),
+      tagList(day_sections)
+    )
+  })
+  
+  # ── Team stats tab ────────────────────────────────────────────────────────────
+  output$teamstats_ui <- renderUI({
+    matches <- r_matches()
+    results <- r_results()
+    
+    if (nrow(matches) == 0)
+      return(div(style = "padding:2rem; color:var(--wc-muted);", "Loading\u2026"))
+    
+    # Build full team list from all matches, excluding TBD
+    all_teams <- sort(unique(c(
+      as.character(matches$team1[matches$team1 != "TBD"]),
+      as.character(matches$team2[matches$team2 != "TBD"])
+    )))
+    
+    tagList(
+      div(
+        style = "padding:1rem 0 1.25rem;",
+        div(
+          style = "display:flex; align-items:center; gap:1rem; flex-wrap:wrap;",
+          div(
+            style = "min-width:240px;",
+            selectInput(
+              "teamstats_sel", "Select a team",
+              choices   = setNames(all_teams,
+                                   sapply(all_teams, function(t) paste(flag(t), t))),
+              selected  = all_teams[1],
+              width     = "100%"
+            )
+          )
+        )
+      ),
+      uiOutput("teamstats_detail_ui")
+    )
+  })
+  
+  output$teamstats_detail_ui <- renderUI({
+    matches <- r_matches()
+    results <- r_results()
+    
+    team <- input$teamstats_sel
+    if (is.null(team) || team == "") return(NULL)
+    
+    # All matches involving this team
+    team_matches <- matches[matches$team1 == team | matches$team2 == team, ]
+    if (nrow(team_matches) == 0)
+      return(div(style = "color:var(--wc-muted); padding:1rem 0;",
+                 "No matches found for this team."))
+    
+    # Join results
+    team_matches <- merge(team_matches, results, by = "match_id", all.x = TRUE)
+    
+    # Build display rows
+    rows <- lapply(seq_len(nrow(team_matches)), function(i) {
+      m          <- team_matches[i, ]
+      opponent   <- if (as.character(m$team1) == team) as.character(m$team2)
+      else as.character(m$team1)
+      has_result <- !is.na(m$winner) && nzchar(as.character(m$winner))
+      winner     <- if (has_result) as.character(m$winner) else NA
+      score      <- if (has_result && !is.na(m$score)) as.character(m$score) else NA
+      
+      # Result from this team's perspective
+      result_text <- if (!has_result) {
+        span(style = "color:var(--wc-muted); font-size:0.8rem;", "Upcoming")
+      } else if (winner == "draw") {
+        span(style = paste0("background:rgba(212,175,55,0.15); color:#a07c00; ",
+                            "border-radius:3px; padding:1px 7px; font-size:0.78rem; font-weight:700;"),
+             paste0("Draw  ", score))
+      } else if (winner == team) {
+        span(style = paste0("background:rgba(60,172,59,0.15); color:var(--wc-green-dark); ",
+                            "border-radius:3px; padding:1px 7px; font-size:0.78rem; font-weight:700;"),
+             paste0("Win  ", score))
+      } else {
+        span(style = paste0("background:rgba(180,50,50,0.1); color:#a33; ",
+                            "border-radius:3px; padding:1px 7px; font-size:0.78rem; font-weight:700;"),
+             paste0("Loss  ", score))
+      }
+      
+      tags$tr(
+        tags$td(style = "padding:0.55rem 0.75rem; font-size:0.82rem; color:var(--wc-muted);",
+                as.character(m$round)),
+        tags$td(style = "padding:0.55rem 0.75rem; font-size:0.82rem;",
+                paste(flag(opponent), opponent)),
+        tags$td(style = "padding:0.55rem 0.75rem; font-size:0.82rem;",
+                as.character(m$date)),
+        tags$td(style = "padding:0.55rem 0.75rem;", result_text)
+      )
+    })
+    
+    # Summary counts
+    played <- team_matches[!is.na(team_matches$winner) & nzchar(as.character(team_matches$winner)), ]
+    wins   <- sum(played$winner == team,   na.rm = TRUE)
+    draws  <- sum(played$winner == "draw", na.rm = TRUE)
+    losses <- sum(played$winner != team & played$winner != "draw", na.rm = TRUE)
+    
+    tagList(
+      # Team header
+      div(
+        style = "display:flex; align-items:center; gap:1rem; margin-bottom:1.25rem;",
+        span(style = "font-size:2.5rem; line-height:1;", flag(team)),
+        div(
+          h4(style = paste0("font-family:'Bebas Neue',sans-serif; font-size:1.8rem; ",
+                            "color:var(--wc-blue); letter-spacing:0.07em; margin:0;"),
+             team),
+          if (nrow(played) > 0)
+            div(style = "display:flex; gap:0.5rem; margin-top:0.3rem;",
+                span(style = paste0("font-size:0.75rem; font-weight:700; padding:2px 8px; ",
+                                    "border-radius:100px; background:rgba(60,172,59,0.15); color:var(--wc-green-dark);"),
+                     paste0("W ", wins)),
+                span(style = paste0("font-size:0.75rem; font-weight:700; padding:2px 8px; ",
+                                    "border-radius:100px; background:rgba(212,175,55,0.15); color:#a07c00;"),
+                     paste0("D ", draws)),
+                span(style = paste0("font-size:0.75rem; font-weight:700; padding:2px 8px; ",
+                                    "border-radius:100px; background:rgba(180,50,50,0.1); color:#a33;"),
+                     paste0("L ", losses))
+            )
+        )
+      ),
+      # Matches table
+      div(
+        style = "overflow-x:auto;",
+        tags$table(
+          style = paste0("width:100%; border-collapse:collapse; background:#FFFFFF; ",
+                         "border:1px solid var(--wc-border); border-radius:8px; overflow:hidden;"),
+          tags$thead(
+            tags$tr(
+              lapply(c("Stage", "Opponent", "Date", "Result"), function(h)
+                tags$th(style = paste0(
+                  "padding:0.55rem 0.75rem; text-align:left; font-size:0.8rem; ",
+                  "font-family:'Bebas Neue',sans-serif; letter-spacing:0.08em; ",
+                  "background:var(--wc-blue); color:#FFFFFF; font-weight:normal;"
+                ), h)
+              )
+            )
+          ),
+          tags$tbody(
+            lapply(seq_along(rows), function(i) {
+              if (i %% 2 == 0)
+                tagAppendAttributes(rows[[i]], style = "background:#f8f9f8;")
+              else rows[[i]]
+            })
+          )
+        )
+      )
+    )
+  })
   # ── Leaderboard ───────────────────────────────────────────────────────────────
   output$lb_ui <- renderUI({
     tagList(
